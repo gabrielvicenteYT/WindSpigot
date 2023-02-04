@@ -1080,12 +1080,12 @@ public abstract class EntityHuman extends EntityLiving {
 								} else {
 									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()), profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraSpeedHorizontal()));
 								}
-							} else {
-								if (this.isExtraKnockback()) {
-									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()), profile.getWTapExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()));
-								} else {
-									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()), profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()));
-
+							if (nextHitWTap) {
+								entity.g(
+										(-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i
+												* profile.getWTapExtraHorizontal()),
+										profile.getWTapExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D))
+												* i * profile.getWTapExtraHorizontal()));
 								}
 							}
 							// WindSpigot end
@@ -1179,6 +1179,20 @@ public abstract class EntityHuman extends EntityLiving {
 			}
 		}
 	}
+	
+	// WindSpigot start
+	protected boolean nextHitWTap;
+	
+	@Override
+	public void setExtraKnockback(boolean flag) {
+		if (flag && !extraKnockback) {
+			nextHitWTap = true;
+		} else {
+			nextHitWTap = false;
+		}
+		super.setExtraKnockback(flag);
+	}
+	// WindSpigot end
 
 	public void b(Entity entity) {
 	}
