@@ -35,7 +35,7 @@ public class Spigot404Write {
 
         //} The player might leave right before the packet is sent
         if (tasks.addTask()) {
-            Spigot404Write writer = Spigot404Write(channel);
+            Spigot404Write writer = channel;
             ChannelHandlerContext context = channel.pipeline().lastContext();
             if (context == null) {
             	context = lastContext;
