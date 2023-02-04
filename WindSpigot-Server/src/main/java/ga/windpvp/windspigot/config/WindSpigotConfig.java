@@ -117,7 +117,7 @@ public class WindSpigotConfig {
 		c.addComment("settings.command", "Configuration for WindSpigot's commands");
 		c.addComment("settings.max-tick-time", "Configuration for maximum entity tick time");
 		c.addComment("settings.async.entity-tracking.enable", "Enables asynchronous entity tracking");
-		c.addComment("settings.async.entity-tracking.threads", "The amount of threads used for async entity tracking, increase or decrease this based on your server load.");
+		c.addComment("settings.async.entity-tracking.threads", "The amount of threads used for async entity tracking per world, increase or decrease this based on your server load.");
 		c.addComment("settings.async.entity-tracking", "Configuration for the async entity tracker.");
 		c.addComment("settings.thread-affinity", "Only switch to true if your OS is properly configured!! (See https://github.com/OpenHFT/Java-Thread-Affinity#isolcpus) \nWhen properly configured on the OS this allocates an entire cpu core to the server, it improves performance but uses more cpu.");
 		c.addComment("settings.command.mob-ai", "Enables the command \"/mobai\" which toggles mob ai. Users require the permission windspigot.command.mobai");
@@ -188,7 +188,7 @@ public class WindSpigotConfig {
 		c.addComment("settings.chunk.threads", "The amount of threads used for chunks.");
 		c.addComment("settings.chunk.players-per-thread", "The amount of players for each thread.");
 		c.addComment("settings.use-tcp-nodelay", "Enables the TCP_NODELAY socket option.");
-		c.addComment("settings.faster-cannon-tracker", "Enables a faster cannon entity tracker.");
+		c.addComment("settings.faster-cannon-tracker", "Enables a faster cannon entity tracker. Please note that this can cause some incompatibilities with name tags for cannon entities.");
 		c.addComment("settings.fix-eat-while-running", "Fixes the eating while running bug.");
 		c.addComment("settings.hide-projectiles-from-hidden-players", "Hides projectiles from hidden players.");
 		c.addComment("settings.lag-compensated-potions", "Enables lag compesation for thrown potions.");
@@ -242,7 +242,7 @@ public class WindSpigotConfig {
 
 	private static void tracking() {
 		disableTracking = !getBoolean("settings.async.entity-tracking.enable", true);
-		trackingThreads = getInt("settings.async.entity-tracking.threads", 5);
+		trackingThreads = getInt("settings.async.entity-tracking.threads", 4);
 	}
 
 	public static boolean threadAffinity;
@@ -585,7 +585,7 @@ public class WindSpigotConfig {
 	public static boolean useFasterCannonTracker;
 
 	private static void useFasterCannonTracker() {
-		useFasterCannonTracker = getBoolean("settings.faster-cannon-tracker", true);
+		useFasterCannonTracker = getBoolean("settings.faster-cannon-tracker", false);
 	}
 
 	public static boolean fixEatWhileRunning;

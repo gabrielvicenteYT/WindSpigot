@@ -18,8 +18,6 @@ import org.sugarcanemc.sugarcane.util.yaml.YamlCommenter;
 import com.google.common.base.Throwables;
 
 import ga.windpvp.windspigot.WindSpigot;
-import ga.windpvp.windspigot.commons.FileUtils;
-import ga.windpvp.windspigot.config.WindSpigotConfig;
 
 public class NachoConfig {
 
@@ -170,7 +168,7 @@ public class NachoConfig {
 	public static boolean useFastOperators;
 
 	private static void useFastOperators() {
-		useFastOperators = getBoolean("settings.fast-operators", true);
+		useFastOperators = getBoolean("settings.fast-operators", false);
 		c.addComment("settings.fast-operators",
 				"Enables Fast Operators, which uses a faster method for managing operators");
 	}

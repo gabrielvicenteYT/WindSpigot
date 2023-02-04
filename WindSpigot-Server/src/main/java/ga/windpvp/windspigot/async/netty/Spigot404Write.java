@@ -24,8 +24,6 @@ public class Spigot404Write {
     }
 
     public static void writeThenFlush(Channel channel, Packet<?> value, GenericFutureListener<? extends Future<? super Void>>[] listener) {
-    	    	
-        Spigot404Write writer = new Spigot404Write(channel);
         packetsQueue.add(new PacketQueue(value, listener));
         if (tasks.addTask()) {
             ChannelHandlerContext context = channel.pipeline().lastContext();
@@ -43,10 +41,12 @@ public class Spigot404Write {
             while (packetsQueue.size() > 0) {
                 PacketQueue messages = packetsQueue.poll();
                 if (messages == null) continue;
+
                 ChannelFuture future = this.channel.write(messages.getPacket());
                 if (messages.getListener() != null) {
                     future.addListeners(messages.getListener());
                 }
+
                 future.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
             }
         }

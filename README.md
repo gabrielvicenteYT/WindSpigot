@@ -1,6 +1,9 @@
 # WindSpigot [![GitHub Workflow Status](https://github.com/Wind-Development/WindSpigot/actions/workflows/windspigot-build-and-upload.yml/badge.svg)](https://nightly.link/Wind-Development/WindSpigot/workflows/windspigot-build-and-upload/master/WindSpigot-server.zip) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3c5ee8d2ef324d23ab085d89139ea0e7)](https://www.codacy.com/gh/Wind-Development/WindSpigot/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Wind-Development/WindSpigot&amp;utm_campaign=Badge_Grade) [![Discord](https://img.shields.io/discord/949530782261714974?label=discord)](https://discord.gg/hqbJvQZpV2)
 
-##### WindSpigot is a 1.8.8 Minecraft server software focused on improving overall server performance and pvp mechanics. WindSpigot is based on a **[fork of NachoSpigot](https://github.com/Argarian-Network/NachoSpigot/tree/async-entity-tracker)**.
+# Temporarily archived!
+## I have not had much time to work on this for a while, so development on WindSpigot has been halted. Development may resume once I have more time.
+
+##### WindSpigot is a 1.8.8 Minecraft server software focused on improving overall server performance and pvp mechanics based on a **[fork of NachoSpigot](https://github.com/Argarian-Network/NachoSpigot/tree/async-entity-tracker)**.
 
 **WindSpigot supports Java 8 to Java 18!**
 
@@ -11,6 +14,9 @@ See the **[releases](https://github.com/Wind-Development/WindSpigot/releases)** 
 
 #### What combat mechanics are improved on?
 WindSpigot makes potion speed and hit delay configurable. We also have NachoSpigot's configurable knockback.
+
+#### How do I customize knockback?
+Knockback can be configured in-game with the /kb command. See the **[wiki](https://github.com/Wind-Development/WindSpigot/wiki/Knockback-Configuration)** for information on settings.
 
 #### What does WindSpigot do to improve overall performance?
 WindSpigot moves heavy work off of the main server thread and splits up the server load.
@@ -38,8 +44,7 @@ See the patches list below.
 [WindSpigot-0014] Async entity path searching
 [WindSpigot-0015] Configurable explosion animations and sound
 [WindSpigot-0016] Configurable weather changes
-[WindSpigot-0017] Async entity tracking
-[WindSpigot-0018] Configurable fishing rod speed multiplier
+[WindSpigot-0017] Configurable fishing rod speed multiplier
 
 [Spigot-0097] Remove DataWatcher Locking by spottedleaf
 [Spigot-0138] Branchless NibbleArray by md5
@@ -125,6 +130,7 @@ See the patches list below.
 
 <--> by Rastrian
 [Nacho-????] Async knockback and hit detection packets
+[Nacho-????] Multithreaded entity tracking
 [Nacho-????] Ticking fixes, tile optimization, and optional fast math
 [Nacho-????] Many more config options
 
@@ -193,7 +199,6 @@ See the patches list below.
 [FlamePaper-0033] Dont check occluding hoppers
 [FlamePaper-0034] Hopper item lookup optimizations
 [FlamePaper-0102] Fixed chunk memory leak
-[FlamePaper-0103] Limit CraftChatMessage iterations
 [FlamePaper-0104] Return last slot by default
 [FlamePaper-0105] Fix memory leaks by Minetick
 [FlamePaper-0106] Fix sending irrelevant block updates to the client

@@ -41,7 +41,6 @@ import co.aikar.timings.SpigotTimings; // Spigot
 import co.aikar.timings.Timing; // Spigot
 import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
 import ga.windpvp.windspigot.WindSpigot;
-import ga.windpvp.windspigot.async.AsyncUtil;
 import ga.windpvp.windspigot.cache.Constants;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
 import ga.windpvp.windspigot.random.FastRandom;
@@ -1292,6 +1291,15 @@ public abstract class Entity implements ICommandListener {
 	}
 
 	public double h(Entity entity) {
+		double d0 = this.locX - entity.locX;
+		double d1 = this.locY - entity.locY;
+		double d2 = this.locZ - entity.locZ;
+
+		return d0 * d0 + d1 * d1 + d2 * d2;
+	}
+	
+	// WindSpigot start
+	public double distanceSqrdAccurate(Entity entity) {
 		// Nacho start - improved hit reg
 		if (WindSpigotConfig.improvedHitDetection && entity instanceof EntityPlayer && this instanceof EntityPlayer) {
 
@@ -1321,6 +1329,7 @@ public abstract class Entity implements ICommandListener {
 			return d0 * d0 + d1 * d1 + d2 * d2;
 		}
 	}
+	// WindSpigot end
 
 	public void d(EntityHuman entityhuman) {
 	}

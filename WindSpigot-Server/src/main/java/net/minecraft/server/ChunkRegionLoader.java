@@ -5,7 +5,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -309,10 +308,6 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
 			nbttagcompound1 = new NBTTagCompound();
 			tileentity.b(nbttagcompound1);
 			nbttaglist2.add(nbttagcompound1);
-
-			if (tileentity instanceof TileEntityHopper) {
-				Arrays.fill(((TileEntityHopper) tileentity).items, null);
-			}
 		}
 
 		nbttagcompound.set("TileEntities", nbttaglist2);
