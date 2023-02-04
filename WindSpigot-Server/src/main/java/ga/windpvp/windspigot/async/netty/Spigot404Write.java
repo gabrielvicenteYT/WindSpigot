@@ -17,13 +17,35 @@ public class Spigot404Write {
     private static Queue<PacketQueue> packetsQueue = Queues.newConcurrentLinkedQueue();
     private static Tasks tasks = new Tasks();
     private static ChannelHandlerContext lastContext;
-    public Channel channel;
+    private Channel channel;
 
     public Spigot404Write(Channel channel) {
         this.channel = channel;
     }
 
-    
+    public static void writeThenFlush(Channel channel, Packet<?> value, GenericFutureListener<? extends Future<? super Void>>[] listener) {
+        packetsQueue.add(new PacketQueue(value, listener));
+        if (!tasks.addTask())
+            return;
+
+        try {
+            Spigot404Write writer = new Spigot404Write(channel);
+        	channel.pipeline().lastContext().executor().execute(writer::writeQueueAndFlush);
+        } catch (NullPointerException ignored) {
+
+        /*} The player might leave right before the packet is sent
+        if (tasks.addTask()) {
+            Spigot404Write writer = Spigot404Write(channel);
+            ChannelHandlerContext context = channel.pipeline().lastContext();
+            if (context == null) {
+            	context = lastContext;
+            } else {
+            	lastContext = context;
+            }
+        	context.executor().execute(writer::writeQueueAndFlush);
+        }*/
+    }
+
     public void writeQueueAndFlush() {
         while (tasks.fetchTask()) {
             while (packetsQueue.size() > 0) {
@@ -40,46 +62,6 @@ public class Spigot404Write {
         }
         this.channel.flush();
     }
-    
-    public static void writeThenFlush(Channel channel, Packet<?> value, GenericFutureListener<? extends Future<? super Void>>[] listener) {
-        packetsQueue.add(new PacketQueue(value, listener));
-/*        if (!tasks.addTask())
-            return;
-
-        try {
-            Spigot404Write writer = new Spigot404Write(channel);
-        	channel.pipeline().lastContext().executor().execute(writer::writeQueueAndFlush);
-        } catch (NullPointerException ignored) {*/
-
-        //} The player might leave right before the packet is sent
-        if (tasks.addTask()) {
-            Spigot404Write writer = Spigot404Write(channel);
-            ChannelHandlerContext context = channel.pipeline().lastContext();
-            if (context == null) {
-            	context = lastContext;
-            } else {
-            	lastContext = context;
-            }
-        	context.executor().execute(writer::writeQueueAndFlush);
-        }
-    }
-
-/*    public void writeQueueAndFlush() {
-        while (tasks.fetchTask()) {
-            while (packetsQueue.size() > 0) {
-                PacketQueue messages = packetsQueue.poll();
-                if (messages == null) continue;
-
-                ChannelFuture future = this.channel.write(messages.getPacket());
-                if (messages.getListener() != null) {
-                    future.addListeners(messages.getListener());
-                }
-
-                future.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-            }
-        }
-        this.channel.flush();
-    }*/
 
     private static class PacketQueue {
         private Packet<?> item;
