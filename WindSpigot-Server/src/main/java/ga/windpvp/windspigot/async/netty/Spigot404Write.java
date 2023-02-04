@@ -25,7 +25,16 @@ public class Spigot404Write {
 
     public static void writeThenFlush(Channel channel, Packet<?> value, GenericFutureListener<? extends Future<? super Void>>[] listener) {
         packetsQueue.add(new PacketQueue(value, listener));
-        if (tasks.addTask()) {
+        if (!tasks.addTask())
+            return;
+
+        try {
+            Spigot404Write writer = new Spigot404Write(channel);
+        	channel.pipeline().lastContext().executor().execute(writer::writeQueueAndFlush);
+        } catch (NullPointerException ignored) {
+
+        } // The player might leave right before the packet is sent
+        /*if (tasks.addTask()) {
             ChannelHandlerContext context = channel.pipeline().lastContext();
             if (context == null) {
             	context = lastContext;
@@ -33,7 +42,7 @@ public class Spigot404Write {
             	lastContext = context;
             }
         	context.executor().execute(writer::writeQueueAndFlush);
-        }
+        }*/
     }
 
     public void writeQueueAndFlush() {
