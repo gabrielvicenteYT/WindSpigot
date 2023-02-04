@@ -33,9 +33,8 @@ public class Spigot404Write {
         	channel.pipeline().lastContext().executor().execute(writer::writeQueueAndFlush);
         } catch (NullPointerException ignored) {
 
-        /*} The player might leave right before the packet is sent
-        if (tasks.addTask()) {
-            Spigot404Write writer = Spigot404Write(channel);
+        } // The player might leave right before the packet is sent
+        /*if (tasks.addTask()) {
             ChannelHandlerContext context = channel.pipeline().lastContext();
             if (context == null) {
             	context = lastContext;
