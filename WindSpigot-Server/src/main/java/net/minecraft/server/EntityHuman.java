@@ -1075,13 +1075,13 @@ public abstract class EntityHuman extends EntityLiving {
 							
 							// WindSpigot start - more configurable knockback
 							if (getBukkitEntity().hasPotionEffect(PotionEffectType.SPEED)) {
-								if (this.isExtraKnockback()) {
+								if (nextHitWTap) {
 									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()), profile.getWTapExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraSpeedHorizontal()));
 								} else {
 									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()), profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraSpeedHorizontal()));
 								}
 							} else {
-								if (this.isExtraKnockback()) {
+								if (nextHitWTap) {
 									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()), profile.getWTapExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()));
 								} else {
 									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()), profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()));
