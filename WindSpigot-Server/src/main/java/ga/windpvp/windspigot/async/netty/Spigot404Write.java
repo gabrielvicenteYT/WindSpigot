@@ -17,7 +17,7 @@ public class Spigot404Write {
     private static Queue<PacketQueue> packetsQueue = Queues.newConcurrentLinkedQueue();
     private static Tasks tasks = new Tasks();
     private static ChannelHandlerContext lastContext;
-    private Channel channel;
+    public Channel channel;
 
     public Spigot404Write(Channel channel) {
         this.channel = channel;
@@ -35,14 +35,14 @@ public class Spigot404Write {
 
         //} The player might leave right before the packet is sent
         if (tasks.addTask()) {
-            //Spigot404Write writer = channel;
+            Spigot404Write writer = channel;
             ChannelHandlerContext context = channel.pipeline().lastContext();
             if (context == null) {
             	context = lastContext;
             } else {
             	lastContext = context;
             }
-        	context.executor().execute(channel::writeQueueAndFlush);
+        	context.executor().execute(writer::writeQueueAndFlush);
         }
     }
 
