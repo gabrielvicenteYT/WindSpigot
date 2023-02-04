@@ -42,11 +42,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 
-import dev.cobblesword.nachospigot.commons.MCUtils;
+import ga.windpvp.windspigot.WindSpigot;
+import ga.windpvp.windspigot.async.AsyncUtil;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import me.elier.nachospigot.config.NachoConfig;
 
 public abstract class PlayerList {
 
@@ -182,7 +182,7 @@ public abstract class PlayerList {
 		this.l = new IpBanList(PlayerList.b);
 		this.operators = new OpList(PlayerList.c);
 		// [Nacho-0037] Add toggle for "Faster Operator"
-		if (NachoConfig.useFastOperators) {
+		if (WindSpigotConfig.useFastOperators) {
 			for (OpListEntry value : this.operators.getValues()) {
 				this.fastOperator.add(value.getKey().getId());
 			}
@@ -566,6 +566,8 @@ public abstract class PlayerList {
 			// KigPaper end
 		}
 
+		WindSpigot.getInstance().getLagCompensator().clearCache(bukkit); // Nacho
+		
 		return playerQuitEvent.getQuitMessage(); // CraftBukkit
 	}
 
@@ -747,6 +749,7 @@ public abstract class PlayerList {
 			}
 
 			Player respawnPlayer = cserver.getPlayer(entityplayer1);
+			
 			PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(respawnPlayer, location, isBedSpawn);
 			cserver.getPluginManager().callEvent(respawnEvent);
 			// Spigot Start
@@ -755,6 +758,7 @@ public abstract class PlayerList {
 			}
 			// Spigot End
 
+            WindSpigot.getInstance().getLagCompensator().clearCache(respawnPlayer); // Nacho
 			location = respawnEvent.getRespawnLocation();
 			entityplayer.reset();
 		} else {
@@ -796,9 +800,9 @@ public abstract class PlayerList {
 
 		if (!entityplayer.playerConnection.isDisconnected()) {
 			// WindSpigot start - safe cross world player teleports
-			if (!Bukkit.isPrimaryThread()) {
+			if (Thread.currentThread() != MinecraftServer.getServer().primaryThread) {
 				// Schedule this to run sync one tick later
-				MCUtils.ensureMain(() -> {
+				AsyncUtil.runPostTick(() -> {
 					worldserver.getPlayerChunkMap().addPlayer(entityplayer1);
 					worldserver.addEntity(entityplayer1);
 				});
@@ -815,8 +819,8 @@ public abstract class PlayerList {
 		// Added from changeDimension
 		updateClient(entityplayer); // Update health, etc...
 		entityplayer.updateAbilities();
-		for (Object o1 : entityplayer.getEffects()) {
-			MobEffect mobEffect = (MobEffect) o1;
+		for (MobEffect o1 : entityplayer.getEffects()) {
+			MobEffect mobEffect = o1;
 			entityplayer.playerConnection.sendPacket(new PacketPlayOutEntityEffect(entityplayer.getId(), mobEffect));
 		}
 		// entityplayer1.syncInventory();
@@ -826,6 +830,8 @@ public abstract class PlayerList {
 		// CraftBukkit start
 		// Don't fire on respawn
 		if (fromWorld != location.getWorld()) {
+			// Nacho
+            WindSpigot.getInstance().getLagCompensator().registerMovement(entityplayer.getBukkitEntity(), entityplayer.getBukkitEntity().getLocation());
 			PlayerChangedWorldEvent event = new PlayerChangedWorldEvent(entityplayer.getBukkitEntity(), fromWorld);
 			server.server.getPluginManager().callEvent(event);
 		}
@@ -892,7 +898,9 @@ public abstract class PlayerList {
 			return;
 		}
 		exitWorld = ((CraftWorld) exit.getWorld()).getHandle();
-
+		
+		WindSpigot.getInstance().getLagCompensator().registerMovement(entityplayer.getBukkitEntity(), exit); // Nacho
+		
 		org.bukkit.event.player.PlayerTeleportEvent tpEvent = new org.bukkit.event.player.PlayerTeleportEvent(
 				entityplayer.getBukkitEntity(), enter, exit, cause);
 		Bukkit.getServer().getPluginManager().callEvent(tpEvent);
@@ -1202,7 +1210,7 @@ public abstract class PlayerList {
 	public void addOp(GameProfile gameprofile) {
 		this.operators.add(new OpListEntry(gameprofile, this.server.p(), this.operators.b(gameprofile)));
 		// [Nacho-0037] Add toggle for "Faster Operator"
-		if (NachoConfig.useFastOperators) {
+		if (WindSpigotConfig.useFastOperators) {
 			this.fastOperator.add(gameprofile.getId());
 		}
 		// CraftBukkit start
@@ -1216,7 +1224,7 @@ public abstract class PlayerList {
 	public void removeOp(GameProfile gameprofile) {
 		this.operators.remove(gameprofile);
 		// [Nacho-0037] Add toggle for "Faster Operator"
-		if (NachoConfig.useFastOperators) {
+		if (WindSpigotConfig.useFastOperators) {
 			this.fastOperator.remove(gameprofile.getId());
 		}
 
@@ -1230,13 +1238,13 @@ public abstract class PlayerList {
 
 	public boolean isWhitelisted(GameProfile gameprofile) {
 		// [Nacho-0037] Add toggle for "Faster Operator"
-		return !this.hasWhitelist || (NachoConfig.useFastOperators ? this.fastOperator.contains(gameprofile.getId())
+		return !this.hasWhitelist || (WindSpigotConfig.useFastOperators ? this.fastOperator.contains(gameprofile.getId())
 				: this.operators.d(gameprofile)) || this.whitelist.d(gameprofile);
 	}
 
 	public boolean isOp(GameProfile gameprofile) {
 		// [Nacho-0037] Add toggle for "Faster Operator"
-		return (NachoConfig.useFastOperators ? this.fastOperator.contains(gameprofile.getId())
+		return (WindSpigotConfig.useFastOperators ? this.fastOperator.contains(gameprofile.getId())
 				: this.operators.d(gameprofile))
 				|| this.server.T() && this.server.worlds.get(0).getWorldData().v()
 						&& this.server.S().equalsIgnoreCase(gameprofile.getName())

@@ -2,7 +2,7 @@ package net.minecraft.server;
 
 import java.io.IOException;
 
-import me.elier.nachospigot.config.NachoConfig;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 
 public class PacketPlayInUseEntity implements Packet<PacketListenerPlayIn> {
 	private int a;
@@ -60,6 +60,6 @@ public class PacketPlayInUseEntity implements Packet<PacketListenerPlayIn> {
 
 	@Override
 	public boolean instant() {
-		return NachoConfig.instantPlayInUseEntity;
+		return WindSpigotConfig.instantPlayInUseEntity;
 	}
 }

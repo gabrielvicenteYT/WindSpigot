@@ -9,7 +9,7 @@ import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.entity.LivingEntity;
 // CraftBukkit end
 
-import me.elier.nachospigot.config.NachoConfig;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 
 public class EntityPotion extends EntityProjectile {
 
@@ -28,7 +28,7 @@ public class EntityPotion extends EntityProjectile {
 		super(world, entityliving);
 		this.item = itemstack;
 		// IonSpigot start - Lag Compensated Potions
-		if (entityliving instanceof EntityPlayer && NachoConfig.lagCompensatedPotions) {
+		if (entityliving instanceof EntityPlayer && WindSpigotConfig.lagCompensatedPotions) {
 			((EntityPlayer) entityliving).potions.add(this);
 			compensated = true;
 		}
@@ -128,7 +128,8 @@ public class EntityPotion extends EntityProjectile {
 
 					EntityLiving entityliving = ((CraftLivingEntity) victim).getHandle();
 
-					if (entityliving instanceof EntityPlayer && !((EntityPlayer) entityliving).getBukkitEntity()
+					// WindSpigot - null check
+					if (this.getShooter() != null && entityliving instanceof EntityPlayer && !((EntityPlayer) entityliving).getBukkitEntity()
 							.canSee(this.getShooter().getBukkitEntity())) {
 						continue;
 					}

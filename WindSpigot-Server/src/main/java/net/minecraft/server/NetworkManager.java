@@ -3,7 +3,6 @@ package net.minecraft.server;
 import java.net.SocketAddress;
 import java.util.Iterator;
 import java.util.Queue;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -19,10 +18,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.velocitypowered.natives.compression.VelocityCompressor; // Paper
 import com.velocitypowered.natives.util.Natives; // Paper
 
-import dev.cobblesword.nachospigot.Nacho; // Nacho
-import dev.cobblesword.nachospigot.exception.ExploitException; // Nacho
 import ga.windpvp.windspigot.WindSpigot;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.exception.ExploitException;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -61,8 +59,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {
 	// Nacho end
 
 	private final EnumProtocolDirection h;
-	private final Queue<NetworkManager.QueuedPacket> i = Queues.newConcurrentLinkedQueue();
-	private final ReentrantReadWriteLock j = new ReentrantReadWriteLock();
+	private final Queue<NetworkManager.QueuedPacket> i = Queues.newConcurrentLinkedQueue();;
 	public Channel channel;
 	// Spigot Start // PAIL
 	public SocketAddress l;
@@ -189,7 +186,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {
 		if (this.channel.isOpen()) {
 			if (this.m instanceof PlayerConnection) {
 				try {
-					for (dev.cobblesword.nachospigot.protocol.PacketListener packetListener : Nacho.get()
+					for (ga.windpvp.windspigot.protocol.PacketListener packetListener : WindSpigot.getInstance()
 							.getPacketListeners()) {
 						if (!packetListener.onReceivedPacket((PlayerConnection) this.m, packet)) {
 							return;
@@ -229,20 +226,15 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {
 				// Check if the packet is a knockback packet
 		        if (WindSpigotConfig.asyncKnockback && (packet instanceof PacketPlayOutEntityVelocity || packet instanceof PacketPlayOutPosition || packet instanceof PacketPlayInFlying.PacketPlayInPosition || packet instanceof PacketPlayInFlying)) {
 		        	// Send it with high priority
-		        	WindSpigot.knockbackThread.addPacket(packet, this, null);
+		        	WindSpigot.getInstance().getKnockbackThread().addPacket(packet, this, null);
 		            return;
 		        }
 			}
 	        // WindSpigot end
 			this.dispatchPacket(packet, null, Boolean.TRUE);
 		} else {
-			this.j.writeLock().lock();
-
-			try {
-				this.i.add(new NetworkManager.QueuedPacket(packet));
-			} finally {
-				this.j.writeLock().unlock();
-			}
+			// WindSpigot - remove unnecessary locks for packets (the packet queue is already thread safe)
+			this.i.add(new NetworkManager.QueuedPacket(packet));
 		}
 
 	}
@@ -254,13 +246,8 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {
 			this.sendPacketQueue();
 			this.dispatchPacket(packet, ArrayUtils.insert(0, listeners, listener), Boolean.TRUE);
 		} else {
-			this.j.writeLock().lock();
-
-			try {
-				this.i.add(new NetworkManager.QueuedPacket(packet, ArrayUtils.insert(0, listeners, listener)));
-			} finally {
-				this.j.writeLock().unlock();
-			}
+			// WindSpigot - remove unnecessary locks for packets (the packet queue is already thread safe)
+			this.i.add(new NetworkManager.QueuedPacket(packet, ArrayUtils.insert(0, listeners, listener)));
 		}
 
 	}
@@ -309,8 +296,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {
 						this.setProtocol(enumprotocol);
 					}
 					try {
-						ChannelFuture channelfuture1 = (flush) ? this.channel.writeAndFlush(packet)
-								: this.channel.write(packet); // Tuinity - add flush parameter
+						ChannelFuture channelfuture1 = this.channel.writeAndFlush(packet); // Tuinity - add flush parameter
 						if (listeners != null) {
 							channelfuture1.addListeners(listeners);
 						}
@@ -359,24 +345,20 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet> {
 			return; // [Nacho-0019] :: Avoid lock every packet send
 		}
 		if (this.channel != null && this.channel.isOpen()) {
-			this.j.readLock().lock();
+			// WindSpigot - remove unnecessary locks for packets (the packet queue is already thread safe)
 			boolean needsFlush = this.canFlush;
 			boolean hasWrotePacket = false;
-			try {
-				Iterator<QueuedPacket> iterator = this.i.iterator();
-				while (iterator.hasNext()) {
-					QueuedPacket queued = iterator.next();
-					Packet packet = queued.a;
-					if (hasWrotePacket && (needsFlush || this.canFlush)) {
-						flush();
-					}
-					iterator.remove();
-					this.dispatchPacket(packet, queued.b,
-							(!iterator.hasNext() && (needsFlush || this.canFlush)) ? Boolean.TRUE : Boolean.FALSE);
-					hasWrotePacket = true;
+			Iterator<QueuedPacket> iterator = this.i.iterator();
+			while (iterator.hasNext()) {
+				QueuedPacket queued = iterator.next();
+				Packet packet = queued.a;
+				if (hasWrotePacket && (needsFlush || this.canFlush)) {
+					flush();
 				}
-			} finally {
-				this.j.readLock().unlock();
+				iterator.remove();
+				this.dispatchPacket(packet, queued.b,
+						(!iterator.hasNext() && (needsFlush || this.canFlush)) ? Boolean.TRUE : Boolean.FALSE);
+				hasWrotePacket = true;
 			}
 		}
 	}

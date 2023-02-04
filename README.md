@@ -1,28 +1,25 @@
-# WindSpigot [![GitHub Workflow Status](https://github.com/Wind-Development/WindSpigot/actions/workflows/windspigot-build-and-upload.yml/badge.svg)](https://nightly.link/Wind-Development/WindSpigot/workflows/windspigot-build-and-upload/master/WindSpigot-server.zip) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3c5ee8d2ef324d23ab085d89139ea0e7)](https://www.codacy.com/gh/Wind-Development/WindSpigot/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Wind-Development/WindSpigot&amp;utm_campaign=Badge_Grade)
+# WindSpigot [![GitHub Workflow Status](https://github.com/Wind-Development/WindSpigot/actions/workflows/windspigot-build-and-upload.yml/badge.svg)](https://nightly.link/Wind-Development/WindSpigot/workflows/windspigot-build-and-upload/master/WindSpigot-server.zip) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3c5ee8d2ef324d23ab085d89139ea0e7)](https://www.codacy.com/gh/Wind-Development/WindSpigot/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Wind-Development/WindSpigot&amp;utm_campaign=Badge_Grade) [![Discord](https://img.shields.io/discord/949530782261714974?label=discord)](https://discord.gg/hqbJvQZpV2)
 
-##### WindSpigot is a 1.8.8 Minecraft server software focused on improving overall server performance and pvp mechanics. WindSpigot is based on a **[fork of NachoSpigot](https://github.com/Argarian-Network/NachoSpigot/tree/async-entity-tracker)**.
+# Temporarily archived!
+## I have not had much time to work on this for a while, so development on WindSpigot has been halted. Development may resume once I have more time.
 
-## Current State
-Java 17 is now natively supported, and **[ViaVersion](https://github.com/ViaVersion/ViaVersion)** is patched at runtime to work with Nacho's modifications.
+##### WindSpigot is a 1.8.8 Minecraft server software focused on improving overall server performance and pvp mechanics based on a **[fork of NachoSpigot](https://github.com/Argarian-Network/NachoSpigot/tree/async-entity-tracker)**.
 
-**WindSpigot supports Java 8 to Java 17!**
+**WindSpigot supports Java 8 to Java 18!**
 
 ## Downloads
-See the **[releases](https://github.com/Wind-Development/WindSpigot/releases)** tab for the latest release. Alternatively, you can download the latest build **[here](https://nightly.link/Wind-Development/WindSpigot/workflows/windspigot-build-and-upload/master/WindSpigot-server.zip)**. The latest build may be unstable, but contains more features.
+See the **[releases](https://github.com/Wind-Development/WindSpigot/releases)** tab for the latest release.
 
 ## FAQ
 
 #### What combat mechanics are improved on?
 WindSpigot makes potion speed and hit delay configurable. We also have NachoSpigot's configurable knockback.
 
+#### How do I customize knockback?
+Knockback can be configured in-game with the /kb command. See the **[wiki](https://github.com/Wind-Development/WindSpigot/wiki/Knockback-Configuration)** for information on settings.
+
 #### What does WindSpigot do to improve overall performance?
 WindSpigot moves heavy work off of the main server thread and splits up the server load.
-
-#### What is done asynchronously to achieve this?
-- Worlds (ticked parallel to each other)
-- TNT calculations (from NachoSpigot)
-- The entity tracker (updated with multiple threads, based on **[this](https://github.com/Argarian-Network/NachoSpigot/tree/async-entity-tracker)**)
-- Knockback (packets are sent with high priority, based on **[this](https://github.com/Argarian-Network/NachoSpigot/tree/async-kb-hit)**)
 
 #### What other modifications does WindSpigot have?
 See the patches list below.
@@ -31,17 +28,23 @@ See the patches list below.
 **All credit goes to the people that made these patches.**<br>
 *Give credit where credit is due!*
 ```
-[WindSpigot-0001] Thread Affinity
-[WindSpigot-0002] WindSpigot Config
+[WindSpigot-0001] Thread affinity
+[WindSpigot-0002] WindSpigot config
 [WindSpigot-0003] Mob AI toggle command
 [WindSpigot-0004] Parallel world ticking
 [WindSpigot-0005] Disable mob spawning if tps is not stable
-[WindSpigot-0006] Remove fastmath usage from explosions
+[WindSpigot-0006] Remove FastMath
 [WindSpigot-0007] Player ping command
 [WindSpigot-0008] Make NachoSpigot's async TNT configurable
 [WindSpigot-0009] Configurable entity hit delay
 [WindSpigot-0010] Configurable potion speeds
 [WindSpigot-0011] Make console display of player ips toggleable
+[WindSpigot-0012] Re-implement Spigot's max tick time for certain configurable entities
+[WindSpigot-0013] More configuration for knockback
+[WindSpigot-0014] Async entity path searching
+[WindSpigot-0015] Configurable explosion animations and sound
+[WindSpigot-0016] Configurable weather changes
+[WindSpigot-0017] Configurable fishing rod speed multiplier
 
 [Spigot-0097] Remove DataWatcher Locking by spottedleaf
 [Spigot-0138] Branchless NibbleArray by md5
@@ -126,8 +129,8 @@ See the patches list below.
 [Nacho-0049] Option to disable Enchantment table ticking
 
 <--> by Rastrian
-[Nacho-????] Async entity tracker
 [Nacho-????] Async knockback and hit detection packets
+[Nacho-????] Multithreaded entity tracking
 [Nacho-????] Ticking fixes, tile optimization, and optional fast math
 [Nacho-????] Many more config options
 
@@ -192,8 +195,10 @@ See the patches list below.
 [KigPaper-0172] NBT no-op for block place packet
 [KigPaper-0191] Don't calculate initial light if not requested
 
+[FlamePaper-0032] Dont load chunks for chests
+[FlamePaper-0033] Dont check occluding hoppers
+[FlamePaper-0034] Hopper item lookup optimizations
 [FlamePaper-0102] Fixed chunk memory leak
-[FlamePaper-0103] Limit CraftChatMessage iterations
 [FlamePaper-0104] Return last slot by default
 [FlamePaper-0105] Fix memory leaks by Minetick
 [FlamePaper-0106] Fix sending irrelevant block updates to the client
@@ -210,5 +215,5 @@ See the patches list below.
 
 [Sugarcane-0022] Add YAML comments
 
-[AW-Spigot-????] Fast random
+[AW-Spigot-????] Fast randoms
 ```

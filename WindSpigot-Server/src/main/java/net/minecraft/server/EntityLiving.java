@@ -23,10 +23,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import dev.cobblesword.nachospigot.commons.Constants;
-import dev.cobblesword.nachospigot.knockback.KnockbackConfig;
 import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
-import net.jafama.FastMath;
+import ga.windpvp.windspigot.cache.Constants;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.knockback.KnockbackConfig;
 
 public abstract class EntityLiving extends Entity {
 
@@ -94,6 +94,10 @@ public abstract class EntityLiving extends Entity {
 	ArrayList<org.bukkit.inventory.ItemStack> drops = null;
 
 	// CraftBukkit end
+	
+	// WindSpigot
+	private boolean hasDisabledMovement = false;
+	
 	// Spigot start
 	@Override
 	public void inactiveTick() {
@@ -117,10 +121,12 @@ public abstract class EntityLiving extends Entity {
 		// constructor
 		this.datawatcher.watch(6, (float) this.getAttributeInstance(GenericAttributes.maxHealth).getValue());
 		this.k = true;
-		this.aH = (float) ((Math.random() + 1.0D) * 0.009999999776482582D);
+		// WindSpigot start - use faster randoms
+		this.aH = (float) ((random.nextDouble() + 1.0D) * 0.009999999776482582D);
 		this.setPosition(this.locX, this.locY, this.locZ);
-		this.aG = (float) Math.random() * 12398.0F;
-		this.yaw = (float) (Math.random() * 3.1415927410125732D * 2.0D);
+		this.aG = (float) random.nextDouble() * 12398.0F;
+		this.yaw = (float) (random.nextDouble() * 3.1415927410125732D * 2.0D);
+		// WindSpiogt end
 		this.aK = this.yaw;
 		this.S = 0.6F;
 	}
@@ -839,16 +845,17 @@ public abstract class EntityLiving extends Entity {
 
 						double distanceZ;
 
-						for (distanceZ = entity.locZ - this.locZ; distanceX * distanceX + distanceZ
-								* distanceZ < 1.0E-4D; distanceZ = (Math.random() - Math.random()) * 0.01D) {
-							distanceX = (Math.random() - Math.random()) * 0.01D;
+						// WindSpigot start - use faster randoms
+						for (distanceZ = entity.locZ - this.locZ; distanceX * distanceX + distanceZ * distanceZ < 1.0E-4D; distanceZ = (random.nextDouble() - random.nextDouble()) * 0.01D) {
+							distanceX = (random.nextDouble() - random.nextDouble()) * 0.01D;
 						}
 
 						this.aw = (float) (MathHelper.b(distanceZ, distanceX) * 180.0D / 3.1415927410125732D
 								- this.yaw);
 						this.a(distanceX, distanceZ, damagesource);
 					} else {
-						this.aw = (int) (Math.random() * 2.0D) * 180;
+						this.aw = (int) (random.nextDouble() * 2.0D) * 180;
+						// WindSpigot end
 					}
 				}
 
@@ -881,7 +888,8 @@ public abstract class EntityLiving extends Entity {
 		this.makeSound("random.break", 0.8F, 0.8F + this.world.random.nextFloat() * 0.4F);
 
 		for (int i = 0; i < 5; ++i) {
-			Vec3D vec3d = new Vec3D((this.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
+			// WindSpigot - use faster randoms
+			Vec3D vec3d = new Vec3D((this.random.nextFloat() - 0.5D) * 0.1D, random.nextDouble() * 0.1D + 0.1D, 0.0D);
 
 			vec3d = vec3d.a(-this.pitch * 3.1415927F / 180.0F);
 			vec3d = vec3d.b(-this.yaw * 3.1415927F / 180.0F);
@@ -945,7 +953,7 @@ public abstract class EntityLiving extends Entity {
 		if (this.random.nextDouble() >= this.getAttributeInstance(GenericAttributes.c).getValue()) {
 			this.ai = true;
 
-			double magnitude = FastMath.sqrt(FastMath.pow(x, 2) + FastMath.pow(z, 2));
+			double magnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(z, 2));
 			double horizontal = 0.4D;
 			double vertical = 0.4D;
 
@@ -956,36 +964,37 @@ public abstract class EntityLiving extends Entity {
 				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityFishingHook) {
 					horizontal = kb.getRodHorizontal();
 					vertical = kb.getRodVertical();
-				}
-				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityArrow) {
+				} else if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityArrow) {
 					horizontal = kb.getArrowHorizontal();
 					vertical = kb.getArrowVertical();
-				}
-				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntitySnowball) {
+				} else if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntitySnowball) {
 					horizontal = kb.getSnowballHorizontal();
 					vertical = kb.getSnowballVertical();
-				}
-				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityEgg) {
+				} else if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityEgg) {
 					horizontal = kb.getEggHorizontal();
 					vertical = kb.getEggVertical();
-				}
-				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityEnderPearl) {
+				} else if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityEnderPearl) {
 					horizontal = kb.getPearlHorizontal();
 					vertical = kb.getPearlVertical();
+				} else {
+					horizontal = kb.getHorizontal();
+					vertical = kb.getVertical();
 				}
 			} else {
 				horizontal = kb.getHorizontal();
 				vertical = kb.getVertical();
 			}
 
-			//
-			this.motX *= kb.getFrictionHorizontal();
-			this.motY *= kb.getFrictionVertical();
-			this.motZ *= kb.getFrictionHorizontal();
+			// WindSpigot start - correct knockback friction (change to division instead of multiplication)
+			this.motX /= kb.getFrictionHorizontal();
+			this.motY /= kb.getFrictionVertical();
+			this.motZ /= kb.getFrictionHorizontal();
+			// WindSpigot end
 
 			this.motX -= x / magnitude * horizontal;
 			this.motY += vertical;
 			this.motZ -= z / magnitude * horizontal;
+			
 			if (this.motY > kb.getVerticalMax()) {
 				this.motY = kb.getVerticalMax();
 			}
@@ -1765,6 +1774,7 @@ public abstract class EntityLiving extends Entity {
 
 		this.world.methodProfiler.b();
 		this.world.methodProfiler.a("jump");
+				
 		if (this.aY) {
 			if (this.V()) {
 				this.bG();
@@ -1777,6 +1787,19 @@ public abstract class EntityLiving extends Entity {
 		} else {
 			this.bn = 0;
 		}
+		
+		// WindSpigot start - smoother mob AI disable
+		if (this instanceof EntityInsentient) {
+			if (getWorld().nachoSpigotConfig.enableMobAI) {
+				hasDisabledMovement = false; // Mark movement as enabled again
+			} else if (!hasDisabledMovement) {
+				motX = 0;
+				motY = 0;
+				motZ = 0;
+				hasDisabledMovement = true;
+			}
+		}
+		// WindSpigot end
 
 		this.world.methodProfiler.b();
 		this.world.methodProfiler.a("travel");
@@ -1902,9 +1925,34 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	public boolean hasLineOfSight(Entity entity) {
-		return this.world.rayTrace(new Vec3D(this.locX, this.locY + this.getHeadHeight(), this.locZ),
-				new Vec3D(entity.locX, entity.locY + entity.getHeadHeight(), entity.locZ)) == null;
+		Vec3D vec = new Vec3D(this.locX, this.locY + (double) this.getHeadHeight(), this.locZ);
+		return this.world.rayTrace(vec, new Vec3D(entity.locX, entity.locY + (double) entity.getHeadHeight(), entity.locZ)) == null;
 	}
+	
+	// WindSpigot start
+	public boolean hasLineOfSightAccurate(Entity entity) {
+		Vec3D vec = new Vec3D(this.locX, this.locY + (double) this.getHeadHeight(), this.locZ);
+
+		if (entity instanceof EntityPlayer && WindSpigotConfig.improvedHitDetection) {
+
+			// Head height is 1,5725
+			// Split it into three to get a more accurate line of sight -> 0.52416667
+
+			double parts = entity.getHeadHeight() / 3;
+
+			return this.world.rayTrace(vec, new Vec3D(entity.locX, entity.locY + (parts * 3), entity.locZ)) == null
+					|| this.world.rayTrace(vec, new Vec3D(entity.locX, entity.locY + (parts * 2), entity.locZ)) == null
+					|| this.world.rayTrace(vec, new Vec3D(entity.locX, entity.locY + (parts * 1), entity.locZ)) == null;
+		} else {
+			return this.world.rayTrace(vec, new Vec3D(entity.locX, entity.locY + (double) entity.getHeadHeight(), entity.locZ)) == null;
+		}
+	}
+	
+	public boolean hasLineOfSight(double x, double y, double z) {
+		Vec3D vec = new Vec3D(this.locX, this.locY + (double) this.getHeadHeight(), this.locZ);
+		return this.world.rayTrace(vec, new Vec3D(x, y, z)) == null;
+	}
+	// WindSpigot end
 
 	@Override
 	public Vec3D ap() {

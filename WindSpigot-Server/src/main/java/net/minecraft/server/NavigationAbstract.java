@@ -22,7 +22,51 @@ public abstract class NavigationAbstract {
 		this.a = entityinsentient.getAttributeInstance(GenericAttributes.FOLLOW_RANGE);
 		this.j = this.a();
 	}
+	
+    // WindSpigot start - async path finding
+    public EntityInsentient getEntity() {
+        return this.b;
+    }
 
+    @Override
+    public int hashCode() {
+        return this.b.getUniqueID().hashCode();
+    }
+
+    public void cleanUpExpiredSearches() {}
+    
+    // WindSpigot start - reduce usage of blockposition
+    public ChunkCache createChunkCache(boolean forEntitySearch) {
+        if (this.b()) {
+            float f = this.i();
+            //BlockPosition blockposition1 = new BlockPosition(this.b);
+            int i = (int) (f + (forEntitySearch ? 16.0F : 8.0F));
+            //return new ChunkCache(this.c, blockposition1.a(-i, -i, -i), blockposition1.a(i, i, i), 0);
+			return new ChunkCache(this.c, MathHelper.floor(b.locX) - i, MathHelper.floor(b.locY) - i,
+					MathHelper.floor(b.locZ) - i, MathHelper.floor(b.locX) + i, MathHelper.floor(b.locY) + i,
+					MathHelper.floor(b.locZ) + i, 0);
+        }
+        return null;
+    }
+    // WindSpigot end
+
+    public PathEntity doPathSearch(ChunkCache chunkcache, BlockPosition blockposition) {
+        return this.doPathSearch(chunkcache, blockposition.getX(), blockposition.getY(), blockposition.getZ());
+    }
+    
+    public PathEntity doPathSearch(ChunkCache chunkcache, int x, int y, int z) {
+        if (this.b()) {
+            float f = this.i();
+            return this.j.a((IBlockAccess) chunkcache, (Entity) this.b, new BlockPosition(x, y, z), f);
+        }
+        return null;
+    }
+
+    public PathEntity doPathSearch(ChunkCache chunkcache, Entity entity) {
+        return this.doPathSearch(chunkcache, (new BlockPosition(entity)).up());
+    }
+    // WindSpigot end
+	
 	protected abstract Pathfinder a();
 
 	public void a(double d0) {
@@ -32,9 +76,12 @@ public abstract class NavigationAbstract {
 	public float i() {
 		return (float) this.a.getValue();
 	}
-
-	public final PathEntity a(double d0, double d1, double d2) {
-		return this.a(new BlockPosition(MathHelper.floor(d0), (int) d1, MathHelper.floor(d2)));
+	public PathEntity a(double d0, double d1, double d2) {
+		return this.a(MathHelper.floor(d0), (int) d1, MathHelper.floor(d2));
+	}
+	
+	public PathEntity a(int d0, int d1, int d2) {
+		return this.a(new BlockPosition(d0, (int) d1, d2)); 
 	}
 
 	public PathEntity a(BlockPosition blockposition) {
@@ -47,6 +94,7 @@ public abstract class NavigationAbstract {
 			BlockPosition blockposition1 = new BlockPosition(this.b);
 			int i = (int) (f + 8.0F);
 			ChunkCache chunkcache = new ChunkCache(this.c, blockposition1.a(-i, -i, -i), blockposition1.a(i, i, i), 0);
+
 			PathEntity pathentity = this.j.a(chunkcache, this.b, blockposition, f);
 
 			this.c.methodProfiler.b();

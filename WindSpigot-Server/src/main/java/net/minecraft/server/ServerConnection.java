@@ -13,7 +13,7 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.velocitypowered.natives.util.Natives; // Paper
 
-import dev.cobblesword.nachospigot.protocol.MinecraftPipeline; // Nacho
+import ga.windpvp.windspigot.protocol.MinecraftPipeline;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -144,8 +144,8 @@ public class ServerConnection {
 			}
 
 			// Paper start - indicate Velocity natives in use
-			LOGGER.info("Nacho: Using " + Natives.compress.getLoadedVariant() + " compression from Velocity.");
-			LOGGER.info("Nacho: Using " + Natives.cipher.getLoadedVariant() + " cipher from Velocity.");
+			LOGGER.info("WindSpigot: Using " + Natives.compress.getLoadedVariant() + " compression from Velocity.");
+			LOGGER.info("WindSpigot: Using " + Natives.cipher.getLoadedVariant() + " cipher from Velocity.");
 			// Paper end
 
 			this.getListeningChannels()

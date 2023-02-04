@@ -7,6 +7,7 @@ import com.google.common.collect.Queues;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.Queue;
@@ -15,6 +16,7 @@ import net.minecraft.server.Packet;
 public class Spigot404Write {
     private static Queue<PacketQueue> packetsQueue = Queues.newConcurrentLinkedQueue();
     private static Tasks tasks = new Tasks();
+    private static ChannelHandlerContext lastContext;
     private Channel channel;
 
     public Spigot404Write(Channel channel) {
@@ -22,14 +24,25 @@ public class Spigot404Write {
     }
 
     public static void writeThenFlush(Channel channel, Packet<?> value, GenericFutureListener<? extends Future<? super Void>>[] listener) {
-    	
-    	if (channel.pipeline().lastContext() == null) return;
-    	
-        Spigot404Write writer = new Spigot404Write(channel);
         packetsQueue.add(new PacketQueue(value, listener));
-        if (tasks.addTask()) {
-            channel.pipeline().lastContext().executor().execute(writer::writeQueueAndFlush);
-        }
+        if (!tasks.addTask())
+            return;
+
+        try {
+            Spigot404Write writer = new Spigot404Write(channel);
+        	channel.pipeline().lastContext().executor().execute(writer::writeQueueAndFlush);
+        } catch (NullPointerException ignored) {
+
+        } // The player might leave right before the packet is sent
+        /*if (tasks.addTask()) {
+            ChannelHandlerContext context = channel.pipeline().lastContext();
+            if (context == null) {
+            	context = lastContext;
+            } else {
+            	lastContext = context;
+            }
+        	context.executor().execute(writer::writeQueueAndFlush);
+        }*/
     }
 
     public void writeQueueAndFlush() {
@@ -37,10 +50,12 @@ public class Spigot404Write {
             while (packetsQueue.size() > 0) {
                 PacketQueue messages = packetsQueue.poll();
                 if (messages == null) continue;
+
                 ChannelFuture future = this.channel.write(messages.getPacket());
                 if (messages.getListener() != null) {
                     future.addListeners(messages.getListener());
                 }
+
                 future.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
             }
         }

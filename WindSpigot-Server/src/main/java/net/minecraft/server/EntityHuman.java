@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 // CraftBukkit end
 
@@ -22,8 +23,8 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackConfig;
 import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackConfig;
 
 public abstract class EntityHuman extends EntityLiving {
 
@@ -277,7 +278,8 @@ public abstract class EntityHuman extends EntityLiving {
 
 		if (itemstack.m() == EnumAnimation.EAT) {
 			for (int j = 0; j < i; ++j) {
-				Vec3D vec3d = new Vec3D((this.random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
+				// WindSpigot - use faster randoms
+				Vec3D vec3d = new Vec3D((this.random.nextFloat() - 0.5D) * 0.1D, random.nextDouble() * 0.1D + 0.1D, 0.0D);
 
 				vec3d = vec3d.a(-this.pitch * 3.1415927F / 180.0F);
 				vec3d = vec3d.b(-this.yaw * 3.1415927F / 180.0F);
@@ -1070,11 +1072,22 @@ public abstract class EntityHuman extends EntityLiving {
 							KnockbackProfile profile = (entity.getKnockbackProfile() == null)
 									? KnockbackConfig.getCurrentKb()
 									: entity.getKnockbackProfile();
-							entity.g(
-									(-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i
-											* profile.getExtraHorizontal()),
-									profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D))
-											* i * profile.getExtraHorizontal()));
+							
+							// WindSpigot start - more configurable knockback
+							if (getBukkitEntity().hasPotionEffect(PotionEffectType.SPEED)) {
+								if (nextHitWTap) {
+									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()), profile.getWTapExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraSpeedHorizontal()));
+								} else {
+									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()), profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraSpeedHorizontal()));
+								}
+							} else {
+								if (nextHitWTap) {
+									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()), profile.getWTapExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getWTapExtraHorizontal()));
+								} else {
+									entity.g((-MathHelper.sin((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()), profile.getExtraVertical(), (MathHelper.cos((float) (this.yaw * Math.PI / 180.0D)) * i * profile.getExtraHorizontal()));
+								}
+							}
+							// WindSpigot end
 							this.motX *= 0.6D;
 							this.motZ *= 0.6D;
 							if (profile.isStopSprint()) {
@@ -1165,6 +1178,20 @@ public abstract class EntityHuman extends EntityLiving {
 			}
 		}
 	}
+	
+	// WindSpigot start
+	protected boolean nextHitWTap;
+	
+	@Override
+	public void setExtraKnockback(boolean flag) {
+		if (flag && !extraKnockback) {
+			nextHitWTap = true;
+		} else {
+			nextHitWTap = false;
+		}
+		super.setExtraKnockback(flag);
+	}
+	// WindSpigot end
 
 	public void b(Entity entity) {
 	}

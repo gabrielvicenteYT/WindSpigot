@@ -359,6 +359,13 @@ public interface Server extends PluginMessageRecipient {
 	public Player getPlayer(UUID id);
 
 	/**
+	 * Gets an entity with the given UUID
+	 * @param uuid id UUID of the entity to retrieve
+	 * @return a entity object if one was found, null otherwise
+	 */
+	public Entity getEntity(UUID uuid);
+	
+	/**
 	 * Gets the plugin manager for interfacing with plugins.
 	 *
 	 * @return a plugin manager for this Server instance
@@ -970,6 +977,12 @@ public interface Server extends PluginMessageRecipient {
 		public org.bukkit.configuration.file.YamlConfiguration getPaperSpigotConfig() {
 			throw new UnsupportedOperationException("Not supported yet.");
 		}
+		
+		// WindSpigot start
+		public org.bukkit.configuration.file.YamlConfiguration getWindSpigotConfig() {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
+		// WindSpigot end
 
 		/**
 		 * Sends the component to the player

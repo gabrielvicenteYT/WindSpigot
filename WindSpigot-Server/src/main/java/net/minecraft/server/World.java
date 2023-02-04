@@ -24,7 +24,6 @@ import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.util.Vector;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
@@ -35,14 +34,13 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 // WindSpigot start 
 import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.entity.EntityTickLimiter;
 import ga.windpvp.windspigot.random.FastRandom;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import me.elier.nachospigot.config.NachoConfig;
 import me.elier.nachospigot.config.NachoWorldConfig;
 import me.rastrian.dev.OptimizedWorldTileEntitySet;
 import me.rastrian.dev.PlayerMap;
 import me.suicidalkids.ion.movement.MovementCache;
-import net.jafama.FastMath;
 // WindSpigot end
 
 public abstract class World implements IBlockAccess {
@@ -86,7 +84,7 @@ public abstract class World implements IBlockAccess {
 	protected final IntHashMap<Entity> entitiesById = new IntHashMap();
 	private long d = 16777215L;
 	private int I;
-	protected int m = (new Random()).nextInt();
+	protected int m = (new FastRandom()).nextInt();
 	protected final int n = 1013904223;
 	protected float o;
 	protected float p;
@@ -114,6 +112,8 @@ public abstract class World implements IBlockAccess {
 	private final WorldBorder N;
 	int[] H;
 
+	protected boolean lastTickOverload = false; // WindSpigot
+	
 	// CraftBukkit start Added the following
 	private final CraftWorld world;
 	public boolean pvpMode;
@@ -182,7 +182,7 @@ public abstract class World implements IBlockAccess {
 																							// here
 
 	public final MovementCache movementCache = new MovementCache(); // IonSpigot - Movement Cache
-
+	
 	public static long chunkToKey(int x, int z) {
 		long k = (((x) & 0xFFFF0000L) << 16) | (((x) & 0x0000FFFFL));
 		k |= (((z) & 0xFFFF0000L) << 32) | (((z) & 0x0000FFFFL) << 16);
@@ -293,8 +293,9 @@ public abstract class World implements IBlockAccess {
 		this.keepSpawnInMemory = this.paperSpigotConfig.keepSpawnInMemory; // PaperSpigot
 		timings = new co.aikar.timings.WorldTimingsHandler(this); // Spigot - code below can generate new world and
 																	// access timings
-		this.entityLimiter = new org.spigotmc.TickLimiter(spigotConfig.entityMaxTickTime);
-		this.tileLimiter = new org.spigotmc.TickLimiter(spigotConfig.tileMaxTickTime);
+		// WindSpigot - re-implement Spigot's entity max tick time, but only for certain entities
+		this.entityLimiter = new ga.windpvp.windspigot.entity.EntityTickLimiter(WindSpigotConfig.entityMaxTickTime); //new org.spigotmc.TickLimiter(spigotConfig.entityMaxTickTime);
+		this.tileLimiter = new org.spigotmc.TickLimiter(WindSpigotConfig.tileMaxTickTime);
 	}
 
 	public World b() {
@@ -1734,6 +1735,7 @@ public abstract class World implements IBlockAccess {
 	}
 
 	public void tickEntities() {
+		boolean tickOverload = false; // WindSpigot
 		this.methodProfiler.a("entities");
 		this.methodProfiler.a("global");
 
@@ -1803,54 +1805,68 @@ public abstract class World implements IBlockAccess {
 		int entitiesThisCycle = 0;
 		// PaperSpigot start - Disable tick limiters
 		// if (tickPosition < 0) tickPosition = 0;
+		entityLimiter.initTick(); // WindSpigot - re-implement Spigot's entity max tick time, but only for certain entities
 		for (tickPosition = 0; tickPosition < entityList.size(); tickPosition++) {
 			// PaperSpigot end
 			tickPosition = (tickPosition < entityList.size()) ? tickPosition : 0;
 			entity = this.entityList.get(this.tickPosition);
 			// CraftBukkit end
-			if (entity.vehicle != null) {
-				if (!entity.vehicle.dead && entity.vehicle.passenger == entity) {
-					continue;
+			
+			// WindSpigot - synchronize
+			synchronized (entity) {
+				// WindSpigot start - re-implement Spigot's entity max tick time, but only for certain entities
+				if (!entityLimiter.shouldContinue()) {
+					tickOverload = true; // indicate that the last tick overloaded the server
+					if (((EntityTickLimiter) entityLimiter).canSkip(entity)) {
+						continue;
+					}
+				} 
+				// WindSpigot end
+				
+				if (entity.vehicle != null) {
+					if (!entity.vehicle.dead && entity.vehicle.passenger == entity) {
+						continue;
+					}
+	
+					entity.vehicle.passenger = null;
+					entity.vehicle = null;
 				}
-
-				entity.vehicle.passenger = null;
-				entity.vehicle = null;
-			}
-
-			this.methodProfiler.a("tick");
-			if (!entity.dead) {
-				try {
-					entity.tickTimer.startTiming(); // Spigot
-					this.g(entity);
-					entity.tickTimer.stopTiming(); // Spigot
-				} catch (Throwable throwable1) {
-					// PaperSpigot start - Prevent tile entity and entity crashes
-					entity.tickTimer.stopTiming();
-					System.err.println("Entity threw exception at " + entity.world.getWorld().getName() + ":"
-							+ entity.locX + "," + entity.locY + "," + entity.locZ);
-					throwable1.printStackTrace();
-					entity.dead = true;
-					continue;
-					// PaperSpigot end
+	
+				this.methodProfiler.a("tick");
+				if (!entity.dead) {
+					try {
+						entity.tickTimer.startTiming(); // Spigot
+						this.g(entity);
+						entity.tickTimer.stopTiming(); // Spigot
+					} catch (Throwable throwable1) {
+						// PaperSpigot start - Prevent tile entity and entity crashes
+						entity.tickTimer.stopTiming();
+						System.err.println("Entity threw exception at " + entity.world.getWorld().getName() + ":"
+								+ entity.locX + "," + entity.locY + "," + entity.locZ);
+						throwable1.printStackTrace();
+						entity.dead = true;
+						continue;
+						// PaperSpigot end
+					}
 				}
-			}
-
-			this.methodProfiler.b();
-			this.methodProfiler.a("remove");
-			if (entity.dead) {
-				j = entity.ae;
-				k = entity.ag;
-				if (entity.ad && this.isChunkLoaded(j, k, true)) {
-					this.getChunkAt(j, k).b(entity);
+	
+				this.methodProfiler.b();
+				this.methodProfiler.a("remove");
+				if (entity.dead) {
+					j = entity.ae;
+					k = entity.ag;
+					if (entity.ad && this.isChunkLoaded(j, k, true)) {
+						this.getChunkAt(j, k).b(entity);
+					}
+	
+					guardEntityList = false; // Spigot
+					this.entityList.remove(this.tickPosition--); // CraftBukkit - Use field for loop variable
+					guardEntityList = true; // Spigot
+					this.b(entity);
 				}
-
-				guardEntityList = false; // Spigot
-				this.entityList.remove(this.tickPosition--); // CraftBukkit - Use field for loop variable
-				guardEntityList = true; // Spigot
-				this.b(entity);
+	
+				this.methodProfiler.b();
 			}
-
-			this.methodProfiler.b();
 		}
 		guardEntityList = false; // Spigot
 
@@ -1966,6 +1982,8 @@ public abstract class World implements IBlockAccess {
 
 		this.methodProfiler.b();
 		this.methodProfiler.b();
+		
+		lastTickOverload = tickOverload; // WindSpigot
 	}
 
 	public boolean a(TileEntity tileentity) {
@@ -2313,10 +2331,11 @@ public abstract class World implements IBlockAccess {
 		double d0 = 1.0D / ((axisalignedbb.d - axisalignedbb.a) * 2.0D + 1.0D);
 		double d1 = 1.0D / ((axisalignedbb.e - axisalignedbb.b) * 2.0D + 1.0D);
 		double d2 = 1.0D / ((axisalignedbb.f - axisalignedbb.c) * 2.0D + 1.0D);
-		double d3 = (1.0D - ((NachoConfig.enableFastMath ? FastMath.floor(1.0D / d0) : Math.floor(1.0D / d0)) * d0))
-				/ 2.0D;
-		double d4 = (1.0D - ((NachoConfig.enableFastMath ? FastMath.floor(1.0D / d2) : Math.floor(1.0D / d2)) * d2))
-				/ 2.0D;
+		
+		// WindSpigot start - switch to mathhelper instead of Java math
+		double d3 = (1.0D - MathHelper.floor(1.0D / d0)) * d0 / 2.0D;
+		double d4 = (1.0D - MathHelper.floor(1.0D / d2)) * d2 / 2.0D;
+		// WindSpigot end
 
 		if (d0 >= 0.0D && d1 >= 0.0D && d2 >= 0.0D) {
 			int i = 0;

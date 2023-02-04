@@ -12,29 +12,27 @@ import ga.windpvp.windspigot.async.netty.Spigot404Write;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
 import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
-import net.openhft.affinity.AffinityLock;
-import net.openhft.affinity.AffinityStrategies;
 
 public abstract class AsyncPacketThread {
     private boolean running = true;
-    private int TICK_TIME = 1000000000 / WindSpigotConfig.combatThreadTPS;
+	private static final long SEC_IN_NANO = 1000000000;
+	private static final int TPS = WindSpigotConfig.combatThreadTPS;
+	private static final long TICK_TIME = SEC_IN_NANO / TPS;
+	private static final long MAX_CATCHUP_BUFFER = TICK_TIME * TPS * 60L;
     private Thread thread;
     protected Queue<Runnable> packets = new ConcurrentLinkedQueue<Runnable>();
 
     public AsyncPacketThread(String s) {
-        try (final AffinityLock al = AffinityLock.acquireLock()) {
-            this.thread = new Thread(new Runnable() {
+        this.thread = new Thread(new Runnable() {
 
-                @Override
-                public void run() {
-                    try (AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.ANY);){
-                        AsyncPacketThread.this.loop();
-                    }
-                }
-            }, s);
-            this.thread.start();
-        }
+            @Override
+            public void run() {
+            	AsyncPacketThread.this.loop();
+            }
+        }, s);
+        this.thread.start();
     }
+    
 
     // Loops scanning for new packets to send
 	public void loop() {
@@ -44,22 +42,34 @@ public abstract class AsyncPacketThread {
 
 		while (this.running) {
 			long curTime = System.nanoTime();
-			long wait = (long) this.TICK_TIME - (curTime - lastTick) - catchupTime;
-			if (wait > 0L) {
+			long wait = TICK_TIME - (curTime - lastTick);
+
+			if (wait > 0) {
+				if (catchupTime < 2E6) {
+					wait += Math.abs(catchupTime);
+				} else if (wait < catchupTime) {
+					//catchupTime -= wait;
+					wait = 0;
+				} else {
+					wait -= catchupTime;
+					//catchupTime = 0;
+				}
+
 				try {
 					// Wait a bit before checking for new packets
-					Thread.sleep(wait / 1000000L);
+					Thread.sleep(wait / 1000000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				//curTime = System.nanoTime();
 				catchupTime = 0L;
 				continue;
 			}
-			catchupTime = Math.min(1000000000L, Math.abs(wait));
+
+			catchupTime = Math.min(MAX_CATCHUP_BUFFER, catchupTime - wait);
 
 			// Handle packets
 			this.run();
-
 			lastTick = curTime;
 		}
 	}

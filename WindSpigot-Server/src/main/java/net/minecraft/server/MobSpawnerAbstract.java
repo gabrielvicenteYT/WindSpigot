@@ -1,7 +1,12 @@
 package net.minecraft.server;
 
+import com.google.common.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
+
+import ga.windpvp.windspigot.cache.Constants;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
+import net.techcable.tacospigot.event.entity.SpawnerPreSpawnEvent;
 
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
@@ -10,44 +15,43 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
 // CraftBukkit end
 
-import com.google.common.collect.Lists;
-
-// CraftBukkit start
-import dev.cobblesword.nachospigot.commons.Constants;
-import me.elier.nachospigot.config.NachoConfig;
-import net.techcable.tacospigot.event.entity.SpawnerPreSpawnEvent;
-
 public abstract class MobSpawnerAbstract {
 
-	public int spawnDelay = 20;
+
 	private String mobName = "Pig";
 	private final List<MobSpawnerAbstract.a> mobs = Lists.newArrayList();
 	private MobSpawnerAbstract.a spawnData;
-	private double e;
-	private int minSpawnDelay = 200 / NachoConfig.tileEntityTickingTime;
-	private int maxSpawnDelay = 800 / NachoConfig.tileEntityTickingTime;
-	private int spawnCount = 4;
-	private Entity j;
-	private int maxNearbyEntities = 6;
-	private int requiredPlayerRange = 16;
-	private int spawnRange = 4;
-	/* private int tickDelay = 0; */ // PaperSpigot
 
-	static final int FAIL_DELAY_TICKS = 100 / NachoConfig.tileEntityTickingTime; // Mobspawner Fail Delay
+	public int spawnDelay;
+	private int minSpawnDelay;
+	private int maxSpawnDelay;
+	private int spawnCount;
+	private int maxNearbyEntities;
+	private int requiredPlayerRange;
+	private int spawnRange;
 
 	public MobSpawnerAbstract() {
+		// WindSpigot start - configurable spawner settings
+		this.spawnDelay = WindSpigotConfig.spawnersInitialSpawnDelay;
+		this.minSpawnDelay = WindSpigotConfig.spawnersMinSpawnDelay;
+		this.maxSpawnDelay = WindSpigotConfig.spawnersMaxSpawnDelay;
+		this.spawnCount = WindSpigotConfig.spawnersSpawnCount;
+		this.spawnRange = WindSpigotConfig.spawnersSpawnRange;
+		this.maxNearbyEntities = WindSpigotConfig.spawnersMaxNearbyEntities;
+		this.requiredPlayerRange = WindSpigotConfig.spawnersRequiredPlayerRange;
+		// WindSpigot end
 	}
 
 	public String getMobName() {
 		if (this.i() == null) {
+
 			// CraftBukkit start - fix NPE
-			if (this.mobName == null) {
+			if (this.mobName == null)
 				this.mobName = "Pig";
-			}
+
 			// CraftBukkit end
-			if (this.mobName != null && "Minecart".equals(this.mobName)) {
+			if (this.mobName.equals("Minecart"))
 				this.mobName = "MinecartRideable";
-			}
 
 			return this.mobName;
 		} else {
@@ -62,42 +66,43 @@ public abstract class MobSpawnerAbstract {
 	private boolean g() {
 		BlockPosition blockposition = this.b();
 
-		return this.a().isPlayerNearbyWhoAffectsSpawning(blockposition.getX() + 0.5D, blockposition.getY() + 0.5D,
-				blockposition.getZ() + 0.5D, this.requiredPlayerRange); // PaperSpigot - Affects Spawning API
+		return this.a().isPlayerNearbyWhoAffectsSpawning((double) blockposition.getX() + 0.5D,
+				(double) blockposition.getY() + 0.5D, (double) blockposition.getZ() + 0.5D,
+				(double) this.requiredPlayerRange); // PaperSpigot - Affects Spawning API
 	}
 
 	public void c() {
-		// PaperSpigot start - Configurable mob spawner tick rate
-		/*
-		 * if (spawnDelay > 0 && --tickDelay > 0) return; tickDelay =
-		 * this.a().paperSpigotConfig.mobSpawnerTickRate;
-		 */
-		// PaperSpigot end
+
 		if (this.g()) {
 			BlockPosition blockposition = this.b();
 			double d0;
 
 			if (this.a().isClientSide) {
-				double d1 = blockposition.getX() + this.a().random.nextFloat();
-				double d2 = blockposition.getY() + this.a().random.nextFloat();
+				double d1 = (double) ((float) blockposition.getX() + this.a().random.nextFloat());
+				double d2 = (double) ((float) blockposition.getY() + this.a().random.nextFloat());
 
-				d0 = blockposition.getZ() + this.a().random.nextFloat();
-				this.a().addParticle(EnumParticle.SMOKE_NORMAL, d1, d2, d0, 0.0D, 0.0D, 0.0D, Constants.EMPTY_ARRAY);
-				this.a().addParticle(EnumParticle.FLAME, d1, d2, d0, 0.0D, 0.0D, 0.0D, Constants.EMPTY_ARRAY);
+				d0 = (double) ((float) blockposition.getZ() + this.a().random.nextFloat());
+				
+				// WindSpigot start - configurable spawner animations
+				if (WindSpigotConfig.spawnerAnimation) {
+					this.a().addParticle(EnumParticle.SMOKE_NORMAL, d1, d2, d0, 0.0D, 0.0D, 0.0D, Constants.EMPTY_ARRAY);
+					this.a().addParticle(EnumParticle.FLAME, d1, d2, d0, 0.0D, 0.0D, 0.0D, Constants.EMPTY_ARRAY);
+				}
+				// WindSpigot end
+
 				if (this.spawnDelay > 0) {
-					--this.spawnDelay; // PaperSpigot
+					--this.spawnDelay;
 				}
 
-				double f = this.e;
-				this.e = (this.e + 1000.0F / (this.spawnDelay + 200.0F)) % 360.0D;
 			} else {
-				if (this.spawnDelay <= -1) { // PaperSpigot
-					this.h();
-				}
 
 				if (this.spawnDelay > 0) {
-					--this.spawnDelay; // PaperSpigot
+					--this.spawnDelay;
 					return;
+				}
+
+				if (this.spawnDelay == -1) {
+					this.h();
 				}
 
 				boolean flag = false;
@@ -118,25 +123,30 @@ public abstract class MobSpawnerAbstract {
 					Entity entity = EntityTypes.createEntityByName(this.getMobName(), this.a());
 
 					if (entity == null) {
-						break;
+						return;
 					}
 
-					int j = this.a().a(entity.getClass(),
-							(new AxisAlignedBB(blockposition.getX(), blockposition.getY(), blockposition.getZ(),
-									blockposition.getX() + 1, blockposition.getY() + 1, blockposition.getZ() + 1))
-											.grow(this.spawnRange, this.spawnRange, this.spawnRange))
+					int j = this.a()
+							.a(entity.getClass(),
+									(new AxisAlignedBB((double) blockposition.getX(), (double) blockposition.getY(),
+											(double) blockposition.getZ(), (double) (blockposition.getX() + 1),
+											(double) (blockposition.getY() + 1), (double) (blockposition.getZ() + 1)))
+													.grow((double) this.spawnRange, (double) this.spawnRange,
+															(double) this.spawnRange))
 							.size();
 
-					if (j >= this.maxNearbyEntities) {
+					if (maxNearbyEntities > 0 && j >= this.maxNearbyEntities) {
 						this.h();
-						break;
+						return;
 					}
 
-					d0 = blockposition.getX()
-							+ (this.a().random.nextDouble() - this.a().random.nextDouble()) * this.spawnRange + 0.5D;
-					double d3 = blockposition.getY() + this.a().random.nextInt(3) - 1;
-					double d4 = blockposition.getZ()
-							+ (this.a().random.nextDouble() - this.a().random.nextDouble()) * this.spawnRange + 0.5D;
+					d0 = (double) blockposition.getX()
+							+ (this.a().random.nextDouble() - this.a().random.nextDouble()) * (double) this.spawnRange
+							+ 0.5D;
+					double d3 = (double) (blockposition.getY() + this.a().random.nextInt(3) - 1);
+					double d4 = (double) blockposition.getZ()
+							+ (this.a().random.nextDouble() - this.a().random.nextDouble()) * (double) this.spawnRange
+							+ 0.5D;
 					EntityInsentient entityinsentient = entity instanceof EntityInsentient ? (EntityInsentient) entity
 							: null;
 
@@ -154,8 +164,6 @@ public abstract class MobSpawnerAbstract {
 
 				if (flag) {
 					this.h();
-				} else {
-					this.spawnDelay += MobSpawnerAbstract.FAIL_DELAY_TICKS;
 				}
 			}
 
@@ -259,7 +267,7 @@ public abstract class MobSpawnerAbstract {
 		}
 
 		if (this.mobs.size() > 0) {
-			this.a(WeightedRandom.a(this.a().random, this.mobs));
+			this.a((MobSpawnerAbstract.a) WeightedRandom.a(this.a().random, this.mobs));
 		}
 
 		this.a(1);
@@ -267,7 +275,7 @@ public abstract class MobSpawnerAbstract {
 
 	public void a(NBTTagCompound nbttagcompound) {
 		this.mobName = nbttagcompound.getString("EntityId");
-		this.spawnDelay = nbttagcompound.getShort("Delay") / NachoConfig.tileEntityTickingTime;
+		this.spawnDelay = nbttagcompound.getShort("Delay");
 		this.mobs.clear();
 		if (nbttagcompound.hasKeyOfType("SpawnPotentials", 9)) {
 			NBTTagList nbttaglist = nbttagcompound.getList("SpawnPotentials", 10);
@@ -284,8 +292,8 @@ public abstract class MobSpawnerAbstract {
 		}
 
 		if (nbttagcompound.hasKeyOfType("MinSpawnDelay", 99)) {
-			this.minSpawnDelay = nbttagcompound.getShort("MinSpawnDelay") / NachoConfig.tileEntityTickingTime;
-			this.maxSpawnDelay = nbttagcompound.getShort("MaxSpawnDelay") / NachoConfig.tileEntityTickingTime;
+			this.minSpawnDelay = nbttagcompound.getShort("MinSpawnDelay");
+			this.maxSpawnDelay = nbttagcompound.getShort("MaxSpawnDelay");
 			this.spawnCount = nbttagcompound.getShort("SpawnCount");
 		}
 
@@ -298,10 +306,6 @@ public abstract class MobSpawnerAbstract {
 			this.spawnRange = nbttagcompound.getShort("SpawnRange");
 		}
 
-		if (this.a() != null) {
-			this.j = null;
-		}
-
 	}
 
 	public void b(NBTTagCompound nbttagcompound) {
@@ -309,9 +313,9 @@ public abstract class MobSpawnerAbstract {
 
 		if (!UtilColor.b(s)) {
 			nbttagcompound.setString("EntityId", s);
-			nbttagcompound.setShort("Delay", (short) (this.spawnDelay * NachoConfig.tileEntityTickingTime));
-			nbttagcompound.setShort("MinSpawnDelay", (short) (this.minSpawnDelay * NachoConfig.tileEntityTickingTime));
-			nbttagcompound.setShort("MaxSpawnDelay", (short) (this.maxSpawnDelay * NachoConfig.tileEntityTickingTime));
+			nbttagcompound.setShort("Delay", (short) this.spawnDelay);
+			nbttagcompound.setShort("MinSpawnDelay", (short) this.minSpawnDelay);
+			nbttagcompound.setShort("MaxSpawnDelay", (short) this.maxSpawnDelay);
 			nbttagcompound.setShort("SpawnCount", (short) this.spawnCount);
 			nbttagcompound.setShort("MaxNearbyEntities", (short) this.maxNearbyEntities);
 			nbttagcompound.setShort("RequiredPlayerRange", (short) this.requiredPlayerRange);
@@ -380,7 +384,7 @@ public abstract class MobSpawnerAbstract {
 
 		private a(NBTTagCompound nbttagcompound, String s, int i) {
 			super(i);
-			if ("Minecart".equals(s)) {
+			if (s.equals("Minecart")) {
 				if (nbttagcompound != null) {
 					s = EntityMinecartAbstract.EnumMinecartType.a(nbttagcompound.getInt("Type")).b();
 				} else {

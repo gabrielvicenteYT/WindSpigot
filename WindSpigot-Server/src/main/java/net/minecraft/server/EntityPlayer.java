@@ -7,8 +7,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 // CraftBukkit start
 import org.bukkit.Bukkit;
 import org.bukkit.WeatherType;
@@ -29,7 +27,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 public class EntityPlayer extends EntityHuman implements ICrafting {
 
-	private static final Logger bH = LogManager.getLogger();
+	//private static final Logger bH = LogManager.getLogger(); // WindSpigot - remove unused logger
 	public String locale = "en_US"; // Spigot
 	public PlayerConnection playerConnection;
 	public final MinecraftServer server;
@@ -304,8 +302,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
 				}
 
 				for (EntityTrackerEntry entitytrackerentry : this.u().getTracker().c) {
-					if (entitytrackerentry.tracker != this && chunkPosSet
-							.contains(this.chunkToLong(entitytrackerentry.tracker.ae, entitytrackerentry.tracker.ag))) {
+					if (entitytrackerentry.tracker != this && chunkPosSet.contains(this.chunkToLong(entitytrackerentry.tracker.ae, entitytrackerentry.tracker.ag))) {
 						entitytrackerentry.updatePlayer(this);
 					}
 				}

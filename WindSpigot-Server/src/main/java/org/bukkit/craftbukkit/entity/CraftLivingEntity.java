@@ -358,11 +358,8 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
 	@Override
 	public Collection<PotionEffect> getActivePotionEffects() {
 		List<PotionEffect> effects = new ArrayList<PotionEffect>();
-		for (Object raw : getHandle().effects.values()) {
-			if (!(raw instanceof MobEffect)) {
-				continue;
-			}
-			MobEffect handle = (MobEffect) raw;
+		for (MobEffect raw : getHandle().effects.values()) {
+			MobEffect handle = raw;
 			effects.add(new PotionEffect(PotionEffectType.getById(handle.getEffectId()), handle.getDuration(),
 					handle.getAmplifier(), handle.isAmbient(), handle.isShowParticles()));
 		}
@@ -433,6 +430,13 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
 	public boolean hasLineOfSight(Entity other) {
 		return getHandle().hasLineOfSight(((CraftEntity) other).getHandle());
 	}
+	
+	// WindSpigot start
+	@Override
+	public boolean hasLineOfSight(Location location) {
+		return getHandle().hasLineOfSight(location.getX(), location.getY(), location.getZ());
+	}
+	// WindSpigot end
 
 	@Override
 	public boolean getRemoveWhenFarAway() {

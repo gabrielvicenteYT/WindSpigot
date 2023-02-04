@@ -9,8 +9,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
-// CraftBukkit start
-import dev.cobblesword.nachospigot.commons.Constants;
+import ga.windpvp.windspigot.cache.Constants;
 // CraftBukkit end
 // TacoSpigot start
 import net.techcable.tacospigot.event.entity.ArrowCollideEvent;
@@ -324,7 +323,7 @@ public class EntityArrow extends Entity implements IProjectile {
 							}
 						}
 
-						world.makeSound(this.shooter, "random.bowhit", 1.0F,
+						world.makeSound(movingobjectposition.entity, "random.bowhit", 1.0F,
 								1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
 						if (!(movingobjectposition.entity instanceof EntityEnderman)) {
 							this.die();
@@ -354,8 +353,7 @@ public class EntityArrow extends Entity implements IProjectile {
 					this.locX -= this.motX / f1 * 0.05000000074505806D;
 					this.locY -= this.motY / f1 * 0.05000000074505806D;
 					this.locZ -= this.motZ / f1 * 0.05000000074505806D;
-					world.makeSound(this.shooter, "random.bowhit", 1.0F,
-							1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
+					world.makeSound(d, e, f, "random.bowhit", 1.0F, 1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
 					this.inGround = true;
 					this.shake = 7;
 					this.setCritical(false);

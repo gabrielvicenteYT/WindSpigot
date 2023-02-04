@@ -19,7 +19,7 @@ import org.bukkit.inventory.InventoryView;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import me.elier.nachospigot.config.NachoConfig;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 
 public abstract class Container {
 
@@ -83,7 +83,7 @@ public abstract class Container {
 			ItemStack itemstack1 = this.b.get(i);
 
 			if (!ItemStack.fastMatches(itemstack1, itemstack)
-					|| (tickCount % NachoConfig.itemDirtyTicks == 0 && !ItemStack.matches(itemstack1, itemstack))) { // Spigot
+					|| (tickCount % WindSpigotConfig.itemDirtyTicks == 0 && !ItemStack.matches(itemstack1, itemstack))) { // Spigot
 				itemstack1 = itemstack == null ? null : itemstack.cloneItemStack();
 				this.b.set(i, itemstack1);
 

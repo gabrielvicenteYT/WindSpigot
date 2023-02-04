@@ -70,6 +70,7 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.craftbukkit.util.DatFileFilter;
 import org.bukkit.craftbukkit.util.Versioning;
 import org.bukkit.craftbukkit.util.permissions.CraftDefaultPermissions;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerChatTabCompleteEvent;
@@ -116,9 +117,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.mojang.authlib.GameProfile;
 
-import dev.cobblesword.nachospigot.Nacho;
-import dev.cobblesword.nachospigot.knockback.KnockbackConfig;
+import ga.windpvp.windspigot.async.entitytracker.AsyncEntityTracker;
+import ga.windpvp.windspigot.commons.PluginUtils;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.knockback.KnockbackConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
@@ -167,7 +169,6 @@ import net.minecraft.server.WorldServer;
 import net.minecraft.server.WorldSettings;
 import net.minecraft.server.WorldType;
 import xyz.sculas.nacho.malware.AntiMalware;
-import xyz.sculas.nacho.patches.RuntimePatches;
 
 public final class CraftServer implements Server {
 	private static final Player[] EMPTY_PLAYER_ARRAY = new Player[0];
@@ -226,7 +227,7 @@ public final class CraftServer implements Server {
 				Lists.transform(playerList.players, net.minecraft.server.EntityPlayer::getBukkitEntity));
 		// WindSpigot start - manual versioning
 		if (serverName.equalsIgnoreCase("WindSpigot")) {
-			this.serverVersion = serverName + " Release v2.1.0"; // Bump this every release
+			this.serverVersion = serverName + " Release v2.1.3"; // Bump this every release
 		} else {
 			this.serverVersion = serverName; // Only put the release version if the server version is default
 		}
@@ -307,7 +308,7 @@ public final class CraftServer implements Server {
 		// enablePlugins(PluginLoadOrder.STARTUP);
 		// Spigot End
 
-		this.serverName = NachoConfig.serverBrandName;
+		this.serverName = WindSpigotConfig.serverBrandName;
 	}
 
 	public boolean getCommandBlockOverride(String command) {
@@ -350,36 +351,41 @@ public final class CraftServer implements Server {
 			for (Plugin plugin : plugins) {
 				try {
 					// Nacho start - [Nacho-0047] Little anti-malware
-					if (NachoConfig.checkForMalware) {
+					if (WindSpigotConfig.checkForMalware) {
 						AntiMalware.find(plugin);
 					}
 					// Nacho end
-					String message = String.format("Loading %s", plugin.getDescription().getFullName());
-					// Nacho start - [Nacho-0043] Fix ProtocolLib
-					if (plugin.getDescription().getFullName().contains("ProtocolLib") && NachoConfig.patchProtocolLib) {
-						boolean val = RuntimePatches.applyProtocolLibPatch(plugin).join();
-						if (val) {
-							Logger.getLogger(CraftServer.class.getName()).log(Level.INFO,
-									"Callback returned a good state, ProtocolLib patch was successful and ProtocolLib is now loading.");
-						} else {
-							Logger.getLogger(CraftServer.class.getName()).log(Level.SEVERE,
-									"An error occurred trying to patch ProtocolLib, the plugin will not work as expected!");
+
+					// Nacho start - Add notice for older ProtocolLib versions
+					if (plugin.getDescription().getFullName().contains("ProtocolLib")) {
+						String[] tmp = plugin.getDescription().getVersion().split("\\.");
+						if (Integer.parseInt(tmp[0]) <= 4 && Integer.parseInt(tmp[1]) <= 6) {
+							logger.warning("Please update to ProtocolLib version 4.7.0 or higher!\n"
+									+ "In version 4.6.0 and lower, ProtocolLib does not work as expected due to a netty update.\n"
+									+ "So.. once again, please update!\n"
+									+ "You can download the latest version with this link: "
+									+ "https://github.com/dmulloy2/ProtocolLib/releases/latest\n"
+									+ "Sleeping for 10s so this message can be read.");
+							Thread.sleep(10000);
 						}
 					}
 					// Nacho end
-					// Nacho start - [Nacho-0044] Fix Citizens
-					else if ("Citizens".equals(plugin.getDescription().getFullName())) {
-						boolean val = RuntimePatches.applyCitizensPatch(plugin).join();
-						if (val) {
-							Logger.getLogger(CraftServer.class.getName()).log(Level.INFO,
-									"Callback returned a good state, Citizens patch was successful and Citizens is now loading.");
-						} else {
-							Logger.getLogger(CraftServer.class.getName()).log(Level.SEVERE,
-									"An error occurred trying to patch Citizens, the plugin will not work as expected!");
+
+					// Nacho start - Add notice for older Citizens versions
+					else if (plugin.getDescription().getFullName().contains("Citizens")) {
+						if (PluginUtils.getCitizensBuild(plugin) < 2396) {
+							logger.warning("Please update to Citizens 2.0.28 #7 or higher!\n"
+									+ "Previously, there was a fix for older versions, but that has been removed.\n"
+									+ "So, if you want Citizens to work, please update!\n"
+									+ "You can download the latest version with this link: "
+									+ "https://ci.citizensnpcs.co/job/Citizens2/\n"
+									+ "Sleeping for 10s so this message can be read.");
+							Thread.sleep(10000);
 						}
 					}
 					// Nacho end
-					plugin.getLogger().info(message);
+
+					plugin.getLogger().info(String.format("Loading %s", plugin.getDescription().getFullName()));
 					plugin.onLoad();
 				} catch (Throwable ex) {
 					Logger.getLogger(CraftServer.class.getName()).log(Level.SEVERE, ex.getMessage() + " initializing "
@@ -535,6 +541,22 @@ public final class CraftServer implements Server {
 
 		return null;
 	}
+	
+	// WindSpigot start - backport some modern API
+	@Override
+    public Entity getEntity(UUID uuid) {
+        Validate.notNull(uuid, "UUID cannot be null");
+
+        for (WorldServer world : this.getServer().worlds) {
+            net.minecraft.server.Entity entity = world.getEntity(uuid);
+            if (entity != null) {
+                return entity.getBukkitEntity();
+            }
+        }
+
+        return null;
+    }
+    // WindSpigot end
 
 	@Override
 	public int broadcastMessage(String message) {
@@ -741,8 +763,7 @@ public final class CraftServer implements Server {
 		Validate.notNull(commandLine, "CommandLine cannot be null");
 
 		// PaperSpigot Start
-		// WindSpigot - remove this
-		/*if (!Bukkit.isPrimaryThread()) {
+		if (!Bukkit.isPrimaryThread()) {
 			final CommandSender fSender = sender;
 			final String fCommandLine = commandLine;
 			Bukkit.getLogger().log(Level.SEVERE, "Command Dispatched Async: " + commandLine);
@@ -764,7 +785,7 @@ public final class CraftServer implements Server {
 			} catch (Exception e) {
 				throw new RuntimeException("Exception processing dispatch command", e.getCause());
 			}
-		}*/
+		}
 		// PaperSpigot End
 
 		if (commandMap.dispatch(sender, commandLine)) {
@@ -828,7 +849,6 @@ public final class CraftServer implements Server {
 		WindSpigotConfig.init((File) console.options.valueOf("windspigot-settings"));
 		// WindSpigot end
 		
-		Nacho.get(); // NachoSpigot
 		for (WorldServer world : console.worlds) {
 			world.worldData.setDifficulty(difficulty);
 			world.setSpawnFlags(monsters, animals);
@@ -853,7 +873,6 @@ public final class CraftServer implements Server {
 		resetRecipes();
 		org.spigotmc.SpigotConfig.registerCommands(); // Spigot
 		org.github.paperspigot.PaperSpigotConfig.registerCommands(); // PaperSpigot
-		Nacho.get().registerCommands(); // NachoSpigot :: Commands
 		
 		MinecraftServer.getServer().getWindSpigot().reload(); // WindSpigot - reload
 
@@ -1050,7 +1069,13 @@ public final class CraftServer implements Server {
 
 		internal.scoreboard = getScoreboardManager().getMainScoreboard().getHandle();
 
-		internal.tracker = new EntityTracker(internal);
+		// WindSpigot start
+		if (WindSpigotConfig.disableTracking) {
+			internal.tracker = new EntityTracker(internal);
+		} else {
+			internal.tracker = new AsyncEntityTracker(internal);
+		}
+		// WindSpigot end
 		internal.addIWorldAccess(new WorldManager(console, internal));
 		internal.worldData.setDifficulty(EnumDifficulty.EASY);
 		internal.setSpawnFlags(true, true);
@@ -1643,17 +1668,17 @@ public final class CraftServer implements Server {
 
 	@Override
 	public boolean versionCommandEnabled() {
-		return NachoConfig.enableVersionCommand;
+		return WindSpigotConfig.enableVersionCommand;
 	}
 
 	@Override
 	public boolean reloadCommandEnabled() {
-		return NachoConfig.enableReloadCommand;
+		return WindSpigotConfig.enableReloadCommand;
 	}
 
 	@Override
 	public boolean pluginsCommandEnabled() {
-		return NachoConfig.enablePluginsCommand;
+		return WindSpigotConfig.enablePluginsCommand;
 	}
 
 	public EntityMetadataStore getEntityMetadata() {
@@ -1780,7 +1805,13 @@ public final class CraftServer implements Server {
 
 	@Override
 	public boolean isPrimaryThread() {
-		return Thread.currentThread().equals(console.primaryThread);
+		Thread current = Thread.currentThread();
+		
+		if (current.getName().indexOf("WindSpigot Parallel World Thread") != -1) {
+			return true;
+		}
+		
+		return current.equals(console.primaryThread);
 	}
 
 	@Override
@@ -1988,6 +2019,13 @@ public final class CraftServer implements Server {
 		public YamlConfiguration getPaperSpigotConfig() {
 			return org.github.paperspigot.PaperSpigotConfig.config;
 		}
+		
+		// WindSpigot start
+		@Override
+		public YamlConfiguration getWindSpigotConfig() {
+			return ga.windpvp.windspigot.config.WindSpigotConfig.config;
+		}
+		// WindSpigot end
 
 		@Override
 		public void restart() {

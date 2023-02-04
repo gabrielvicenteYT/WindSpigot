@@ -67,11 +67,13 @@ import org.github.paperspigot.Title;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 
-import dev.cobblesword.nachospigot.commons.Constants;
+import ga.windpvp.windspigot.WindSpigot;
+import ga.windpvp.windspigot.cache.Constants;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 import io.netty.buffer.Unpooled;
-import me.elier.nachospigot.config.NachoConfig;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.server.AttributeInstance;
 import net.minecraft.server.AttributeMapServer;
@@ -122,7 +124,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 	private boolean hasPlayedBefore = false;
 	private final ConversationTracker conversationTracker = new ConversationTracker();
 	private final Set<String> channels = new HashSet<String>();
-	private final Set<UUID> hiddenPlayers = new HashSet<UUID>();
+	private final Set<UUID> hiddenPlayers = Sets.newConcurrentHashSet(); // WindSpigot - concurrent collection
 	private int hash = 0;
 	private double health = 20;
 	private boolean scaledHealth = false;
@@ -624,6 +626,8 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 		if (event.isCancelled()) {
 			return false;
 		}
+		
+        WindSpigot.getInstance().getLagCompensator().registerMovement(this, to); // Nacho
 
 		// If this player is riding another entity, we must dismount before teleporting.
 		entity.mount(null);
@@ -1072,7 +1076,9 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 		// remove this player from the hidden player's EntityTrackerEntry
 		EntityTracker tracker = ((WorldServer) entity.world).tracker;
 		EntityPlayer other = ((CraftPlayer) player).getHandle();
+		
 		EntityTrackerEntry entry = tracker.trackedEntities.get(other.getId());
+		
 		if (entry != null) {
 			entry.clear(getHandle());
 		}
@@ -1103,8 +1109,8 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 
 		getHandle().playerConnection.sendPacket(
 				new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, other));
-
 		EntityTrackerEntry entry = tracker.trackedEntities.get(other.getId());
+		
 		if (entry != null && !entry.trackedPlayers.contains(getHandle())) {
 			entry.updatePlayer(getHandle());
 		}
@@ -1127,7 +1133,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 		}
 
 		// Projectiles from hidden players
-		if (NachoConfig.hideProjectilesFromHiddenPlayers) {
+		if (WindSpigotConfig.hideProjectilesFromHiddenPlayers) {
 			if (nmsEntity instanceof EntityProjectile) {
 				EntityProjectile entityProjectile = (EntityProjectile) nmsEntity;
 

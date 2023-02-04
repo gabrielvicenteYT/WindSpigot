@@ -13,8 +13,9 @@ import org.bukkit.event.entity.EntityUnleashEvent;
 import org.bukkit.event.entity.EntityUnleashEvent.UnleashReason;
 // CraftBukkit end
 
-// CraftBukkit start
-import dev.cobblesword.nachospigot.commons.Constants;
+import ga.windpvp.windspigot.async.pathsearch.AsyncNavigation;
+import ga.windpvp.windspigot.cache.Constants;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 
 public abstract class EntityInsentient extends EntityLiving {
 
@@ -86,6 +87,9 @@ public abstract class EntityInsentient extends EntityLiving {
 	}
 
 	protected NavigationAbstract b(World world) {
+		if (WindSpigotConfig.asyncPathSearches) {
+			return new AsyncNavigation(this, world);
+		}
 		return new Navigation(this, world);
 	}
 
@@ -514,6 +518,7 @@ public abstract class EntityInsentient extends EntityLiving {
 	@Override
 	protected final void doTick() {
 		++this.ticksFarFromPlayer;
+		this.navigation.cleanUpExpiredSearches(); // WindSpigot
 		this.world.methodProfiler.a("checkDespawn");
 		this.D();
 		this.world.methodProfiler.b();

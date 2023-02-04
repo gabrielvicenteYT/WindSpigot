@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
 // CraftBukkit start
@@ -52,18 +53,20 @@ import org.bukkit.util.NumberConversions;
 import org.github.paperspigot.PaperSpigotConfig; // PaperSpigot
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 
 import co.aikar.timings.SpigotTimings; // Spigot
 // CraftBukkit end
 import dev.cobblesword.nachospigot.Nacho;
-import dev.cobblesword.nachospigot.events.PlayerIllegalBehaviourEvent;
+import ga.windpvp.windspigot.WindSpigot;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.events.PlayerIllegalBehaviourEvent;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import me.elier.nachospigot.config.NachoConfig;
+import net.minecraft.server.WorldSettings.EnumGamemode;
 
 public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerListBox {
 
@@ -94,6 +97,9 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 	private int creativeSlotCount = 0;
 	private long lastCustomPayloadPacketTS = -1L;
 	private boolean isExploiter = false;
+	
+	// WindSpigot - queue-able packets
+	private Queue<Packet<?>> queuedPackets = Queues.newLinkedBlockingQueue();
 
 	public PlayerConnection(MinecraftServer minecraftserver, NetworkManager networkmanager, EntityPlayer entityplayer) {
 		this.minecraftServer = minecraftserver;
@@ -140,29 +146,32 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 		this.h = false;
 		++this.e;
 
-		// Feather start back port 1.12.2 keepalive handling
-		/*
-		 * this.minecraftServer.methodProfiler.a("keepAlive"); if ((long) this.e -
-		 * this.k > 40L) { this.k = (long) this.e; this.j = this.d(); this.i = (int)
-		 * this.j; this.sendPacket(new PacketPlayOutKeepAlive(this.i)); }
-		 * 
-		 * this.minecraftServer.methodProfiler.b();
-		 */
-
-		final long currentTime = this.getCurrentMillis();
-		final long elapsedTime = currentTime - this.getLastPing();
-		if (isPendingPing) {
-			if (!this.processedDisconnect && elapsedTime >= KEEPALIVE_LIMIT) {
-				this.disconnect("Timed out");
-				return;
+		// Feather start - back port 1.12.2 keepalive handling
+		if (WindSpigotConfig.modernKeepalive) {
+			final long currentTime = this.getCurrentMillis();
+			final long elapsedTime = currentTime - this.getLastPing();
+			if (isPendingPing) {
+				if (!this.processedDisconnect && elapsedTime >= KEEPALIVE_LIMIT) {
+					this.disconnect("Timed out");
+					return;
+				}
+			} else if (elapsedTime >= 15000L) {
+				isPendingPing = true;
+				this.setLastPing(currentTime);
+				this.setKeepAliveID((int) /* casting to an integer is the vanilla behavior */ currentTime);
+				this.sendPacket(new PacketPlayOutKeepAlive(this.getKeepAliveID()));
 			}
-		} else if (elapsedTime >= 15000L) {
-			isPendingPing = true;
-			this.setLastPing(currentTime);
-			this.setKeepAliveID((int) /* casting to an integer is the vanilla behavior */ currentTime);
-			this.sendPacket(new PacketPlayOutKeepAlive(this.getKeepAliveID()));
+			// Feather end
+		} else {
+			this.minecraftServer.methodProfiler.a("keepAlive");
+			if ((long) this.e - this.k > 40L) {
+				this.k = (long) this.e;
+				this.j = this.d();
+				this.i = (int) this.j;
+				this.sendPacket(new PacketPlayOutKeepAlive(this.i));
+			}
+			this.minecraftServer.methodProfiler.b();
 		}
-		// Feather end
 
 		// CraftBukkit start
 		for (int spam; (spam = this.chatThrottle) > 0 && !chatSpamField.compareAndSet(this, spam, spam - 1);) {
@@ -204,21 +213,29 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 	// Feather start
 	@Override
 	public void a(PacketPlayInKeepAlive packetplayinkeepalive) {
-		if (noKeepalives) {
-			return;
-		}
-		if (isPendingPing && packetplayinkeepalive.a() == getKeepAliveID()) {
-			int i = (int) (this.d() - getLastPing());
-			this.player.ping = (this.player.ping * 3 + i) / 4;
-			isPendingPing = false;
-			isDownloading = false;
-		} else if (packetplayinkeepalive.a() == 0) {
-			isDownloading = true;
+		if (WindSpigotConfig.modernKeepalive) {
+			if (noKeepalives) {
+				return;
+			}
+			if (isPendingPing && packetplayinkeepalive.a() == getKeepAliveID()) {
+				int i = (int) (this.d() - getLastPing());
+				this.player.ping = (this.player.ping * 3 + i) / 4;
+				isPendingPing = false;
+				isDownloading = false;
+			} else if (packetplayinkeepalive.a() == 0) {
+				isDownloading = true;
+			} else {
+				noKeepalives = true;
+				c.warn("{} sent an invalid keepalive! pending keepalive: {} got id: {} expected id: {}",
+						this.player.getName(), isPendingPing, packetplayinkeepalive.a(), this.getKeepAliveID());
+				this.minecraftServer.postToMainThread(() -> disconnect("invalid keepalive"));
+			}
 		} else {
-			noKeepalives = true;
-			c.warn("{} sent an invalid keepalive! pending keepalive: {} got id: {} expected id: {}",
-					this.player.getName(), isPendingPing, packetplayinkeepalive.a(), this.getKeepAliveID());
-			this.minecraftServer.postToMainThread(() -> disconnect("invalid keepalive"));
+			// Old keepalive handling
+	        if (packetplayinkeepalive.a() == this.i) {
+	            int i = (int) (this.d() - this.j);
+	            this.player.ping = (this.player.ping * 3 + i) / 4;
+	        }
 		}
 	}
 	// Feather end
@@ -374,8 +391,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 				float deltaAngle = Math.abs(this.lastYaw - to.getYaw()) + Math.abs(this.lastPitch - to.getPitch());
 
 				if ((packetplayinflying.hasPos) && ((delta > 0.0D) && (this.checkMovement && !this.player.dead))) {
-					for (dev.cobblesword.nachospigot.protocol.MovementListener movementListener : Nacho.get()
-							.getMovementListeners()) {
+					for (ga.windpvp.windspigot.protocol.MovementListener movementListener : WindSpigot.getInstance().getMovementListeners()) {
 						try {
 							movementListener.updateLocation(player, to, from, packetplayinflying);
 						} catch (Exception e) {
@@ -386,8 +402,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 
 				if ((packetplayinflying.hasLook)
 						&& ((deltaAngle > 0.0F) && (this.checkMovement && !this.player.dead))) {
-					for (dev.cobblesword.nachospigot.protocol.MovementListener movementListener : Nacho.get()
-							.getMovementListeners()) {
+					for (ga.windpvp.windspigot.protocol.MovementListener movementListener : WindSpigot.getInstance().getMovementListeners()) {
 						try {
 							movementListener.updateRotation(player, to, from, packetplayinflying);
 						} catch (Exception e) {
@@ -402,15 +417,16 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 					this.lastPosZ = to.getZ();
 					this.lastYaw = to.getYaw();
 					this.lastPitch = to.getPitch();
-
+					
 					// Skip the first time we do this
-					if (NachoConfig.firePlayerMoveEvent) { // Spigot - don't skip any move events
+					if (WindSpigotConfig.firePlayerMoveEvent && PlayerMoveEvent.getHandlerList().getRegisteredListeners().length != 0) { // WindSpigot - only handle player move event when there are listeners // Spigot - don't skip any move events
 						Location oldTo = to.clone();
 						PlayerMoveEvent event = new PlayerMoveEvent(player, from, to);
 						this.server.getPluginManager().callEvent(event);
 
 						// If the event is cancelled we move the player back to their old location.
 						if (event.isCancelled()) {
+		                    WindSpigot.getInstance().getLagCompensator().registerMovement(player, to); // Nacho
 							this.player.playerConnection.sendPacket(new PacketPlayOutPosition(from.getX(), from.getY(),
 									from.getZ(), from.getYaw(), from.getPitch(),
 									Collections.<PacketPlayOutPosition.EnumPlayerTeleportFlags>emptySet()));
@@ -438,6 +454,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 							return;
 						}
 					}
+                    WindSpigot.getInstance().getLagCompensator().registerMovement(player, to); // Nacho - register movement
 				}
 
 				if (this.checkMovement && !this.player.dead) {
@@ -663,6 +680,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 		}
 
 		Location to = new Location(this.getPlayer().getWorld(), x, y, z, yaw, pitch);
+		
 		PlayerTeleportEvent event = new PlayerTeleportEvent(player, from.clone(), to.clone(),
 				PlayerTeleportEvent.TeleportCause.UNKNOWN);
 		this.server.getPluginManager().callEvent(event);
@@ -676,7 +694,8 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 			f = to.getYaw();
 			f1 = to.getPitch();
 		}
-
+		
+        WindSpigot.getInstance().getLagCompensator().registerMovement(player, to); // Nacho
 		this.internalTeleport(d0, d1, d2, f, f1, set);
 	}
 
@@ -942,7 +961,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 				}
 
 				// SportPaper end
-			} else if (MinecraftServer.currentTick - lastDropTick > 1 && NachoConfig.fixEatWhileRunning) {
+			} else if (MinecraftServer.currentTick - lastDropTick > 1 && WindSpigotConfig.fixEatWhileRunning) {
 				this.player.playerInteractManager.useItem(this.player, this.player.world, itemstack);
 			}
 
@@ -1015,7 +1034,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 			// CraftBukkit - TODO CHECK IF NEEDED -- new if structure might not need
 			// 'always'. Kept it in for now, but may be able to remove in future
 			// KigPaper-0172
-			if (NachoConfig.stopDecodingItemStackOnPlace
+			if (WindSpigotConfig.stopDecodingItemStackOnPlace
 					? (!ItemStack.matches(this.player.inventory.getItemInHand(), itemstack) || always // KigPaper - use
 																										// saved
 																										// itemstack
@@ -1163,8 +1182,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 		// CraftBukkit end
 
 		try {
-			for (dev.cobblesword.nachospigot.protocol.PacketListener packetListener : Nacho.get()
-					.getPacketListeners()) {
+			for (ga.windpvp.windspigot.protocol.PacketListener packetListener : WindSpigot.getInstance().getPacketListeners()) {
 				try {
 					if (!packetListener.onSentPacket(this, packet)) {
 						return;
@@ -1400,8 +1418,8 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 								queueEvent.getMessage());
 						PlayerConnection.this.minecraftServer.console.sendMessage(message);
 						if (((LazyPlayerSet) queueEvent.getRecipients()).isLazy()) {
-							for (Object player : PlayerConnection.this.minecraftServer.getPlayerList().players) {
-								((EntityPlayer) player).sendMessage(CraftChatMessage.fromString(message));
+							for (EntityPlayer player : PlayerConnection.this.minecraftServer.getPlayerList().players) {
+								player.sendMessage(CraftChatMessage.fromString(message));
 							}
 						} else {
 							for (Player player : queueEvent.getRecipients()) {
@@ -1612,14 +1630,24 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 
 		this.player.resetIdleTimer();
 		if (entity != null) {
-			boolean flag = this.player.hasLineOfSight(entity);
-			double d0 = 36.0D;
+			// WindSpigot
+			boolean flag = this.player.hasLineOfSightAccurate(entity);
+			double d0;
 
 			if (!flag) {
-				d0 = 9.0D;
-			}
+                // Nacho - Increase the no player-player vision maximum reach
+                d0 = (WindSpigotConfig.improvedHitDetection) ? 12.75D : 9.0D;
+            } else {
+            	// WindSpigot start - configurable reach cap            	
+            	if (WindSpigotConfig.creativeBypass && this.player.playerInteractManager.getGameMode() == EnumGamemode.CREATIVE) {
+            		d0 = 36.0;
+            	} else {
+                	d0 = WindSpigotConfig.maxReachSqrd;
+            	}	
+            }
 
-			if (this.player.h(entity) < d0) {
+			// WindSpigot
+            if (this.player.distanceSqrdAccurate(entity) <= d0) { // Nacho - <  ->  <=
 				ItemStack itemInHand = this.player.inventory.getItemInHand(); // CraftBukkit
 
 				if (packetplayinuseentity.a() == PacketPlayInUseEntity.EnumEntityUseAction.INTERACT
@@ -2252,7 +2280,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 					entityitem.j();
 				}
 			}
-		} else if (NachoConfig.kickOnIllegalBehavior) {
+		} else if (WindSpigotConfig.kickOnIllegalBehavior) {
 			PlayerIllegalBehaviourEvent event = new PlayerIllegalBehaviourEvent(this.server.getPlayer(this.player),
 					PlayerIllegalBehaviourEvent.IllegalType.CREATIVE_ACTION_NOT_IN_CREATIVE);
 			this.server.getPluginManager().callEvent(event);
@@ -2629,6 +2657,21 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 	public boolean isDisconnected() { // Spigot
 		return !this.player.joining && !this.networkManager.channel.config().isAutoRead();
 	}
+	
+	// WindSpigot start - queue-able packets
+	public void queuePacket(Packet<?> packet) {
+		if (packet == null) return;
+		queuedPackets.add(packet);
+	}
+	
+	public void sendQueuedPackets() {
+		networkManager.disableAutomaticFlush();
+		while (!queuedPackets.isEmpty()) {
+			sendPacket(queuedPackets.poll());
+		}
+		networkManager.enableAutomaticFlush();
+	}
+	// WindSpigot end
 
 	static class SyntheticClass_1 {
 

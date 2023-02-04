@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import ga.windpvp.windspigot.random.FastRandom;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.WeatherType;
@@ -25,7 +26,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import ga.windpvp.windspigot.async.entitytracker.AsyncEntityTracker;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.world.WorldTicker;
 
 public class WorldServer extends World implements IAsyncTaskHandler {
 
@@ -62,6 +65,9 @@ public class WorldServer extends World implements IAsyncTaskHandler {
 
 	// CraftBukkit start
 	public final int dimension;
+	
+	// WindSpigot
+	public WorldTicker ticker;
 
 	// Add env and gen to constructor
 	public WorldServer(MinecraftServer minecraftserver, IDataManager idatamanager, WorldData worlddata, int i,
@@ -72,7 +78,12 @@ public class WorldServer extends World implements IAsyncTaskHandler {
 		worlddata.world = this;
 		// CraftBukkit end
 		this.server = minecraftserver;
-		this.tracker = new EntityTracker(this);
+		// WindSpigot - async entity tracking
+		if (WindSpigotConfig.disableTracking) {
+			this.tracker = new EntityTracker(this);
+		} else {
+			this.tracker = new AsyncEntityTracker(this);
+		}
 		this.manager = new PlayerChunkMap(this, spigotConfig.viewDistance); // Spigot
 		this.worldProvider.a(this);
 		this.chunkProvider = this.k();
@@ -245,8 +256,11 @@ public class WorldServer extends World implements IAsyncTaskHandler {
 		if (this.getGameRules().getBoolean("doMobSpawning")
 				&& this.worldData.getType() != WorldType.DEBUG_ALL_BLOCK_STATES
 				&& (this.allowMonsters || this.allowAnimals) && this.players.size() > 0) {
-			// WindSpigot - disable mob spawning based on tps
-			if (!(WindSpigotConfig.limitedMobSpawns && MinecraftServer.getServer().recentTps[1] < WindSpigotConfig.limitedMobSpawnsThreshold)) {
+			// WindSpigot start - disable mob spawning based on tps and server load
+			if (!(WindSpigotConfig.limitedMobSpawns
+					&& MinecraftServer.getServer().recentTps[0] < WindSpigotConfig.limitedMobSpawnsThreshold) // check if tps is low 
+					&& !(WindSpigotConfig.stopMobSpawnsDuringOverload && lastTickOverload)) { // check if server is overloaded
+				// WindSpigot end
 				timings.mobSpawn.startTiming(); // Spigot
 				this.R.a(this,
 						this.allowMonsters
@@ -859,8 +873,8 @@ public class WorldServer extends World implements IAsyncTaskHandler {
 				if (chunk == null) {
 					continue;
 				}
-				for (Object te : chunk.tileEntities.values()) {
-					TileEntity tileentity = (TileEntity) te;
+				for (TileEntity te : chunk.tileEntities.values()) {
+					TileEntity tileentity = te;
 					if ((tileentity.position.getX() >= i) && (tileentity.position.getY() >= j)
 							&& (tileentity.position.getZ() >= k) && (tileentity.position.getX() < l)
 							&& (tileentity.position.getY() < i1) && (tileentity.position.getZ() < j1)) {
@@ -938,7 +952,7 @@ public class WorldServer extends World implements IAsyncTaskHandler {
 			this.isLoading = true;
 			WorldChunkManager worldchunkmanager = this.worldProvider.m();
 			List list = worldchunkmanager.a();
-			Random random = new Random(this.getSeed());
+			Random random = new FastRandom(this.getSeed());
 			BlockPosition blockposition = worldchunkmanager.a(0, 0, 256, list, random);
 			int i = 0;
 			int j = this.worldProvider.getSeaLevel();
@@ -946,7 +960,7 @@ public class WorldServer extends World implements IAsyncTaskHandler {
 
 			// CraftBukkit start
 			if (this.generator != null) {
-				Random rand = new Random(this.getSeed());
+				Random rand = new FastRandom(this.getSeed());
 				org.bukkit.Location spawn = this.generator.getFixedSpawnLocation(this.getWorld(), rand);
 
 				if (spawn != null) {

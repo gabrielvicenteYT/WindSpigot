@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.Proxy;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import ga.windpvp.windspigot.random.FastRandom;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,11 +20,10 @@ import org.bukkit.event.server.RemoteServerCommandEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
 import co.aikar.timings.SpigotTimings; // Spigot
-import dev.cobblesword.nachospigot.Nacho;
-import dev.cobblesword.nachospigot.commons.IPUtils;
-import dev.cobblesword.nachospigot.knockback.KnockbackConfig;
 import ga.windpvp.windspigot.WindSpigot;
+import ga.windpvp.windspigot.commons.IPUtils;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
+import ga.windpvp.windspigot.knockback.KnockbackConfig;
 import me.elier.nachospigot.config.NachoConfig;
 
 public class DedicatedServer extends MinecraftServer implements IMinecraftServer {
@@ -42,10 +41,10 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
 	private boolean s;
 
 	// CraftBukkit start - Signature changed
-	public DedicatedServer(joptsimple.OptionSet options) {
-		super(options, Proxy.NO_PROXY, MinecraftServer.a);
+    public DedicatedServer(joptsimple.OptionSet options, Thread thread1) { // WindSpigot - backport modern tick loop
+        super(options, Proxy.NO_PROXY, DedicatedServer.a, thread1);
 		// CraftBukkit end
-		if (!NachoConfig.disableInfiniSleeperThreadUsage) {
+		if (!WindSpigotConfig.disableInfiniSleeperThreadUsage) {
 			Thread thread = new Thread("Server Infinisleeper") {
 				{
 					this.setDaemon(true);
@@ -201,8 +200,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
 			org.github.paperspigot.PaperSpigotConfig.init((File) options.valueOf("paper-settings"));
 			org.github.paperspigot.PaperSpigotConfig.registerCommands();
 			// PaperSpigot end
-			Nacho.get().registerCommands(); // NachoSpigot :: Commands
-
+			
 			DedicatedServer.LOGGER.info("Generating keypair");
 			this.a(MinecraftEncryption.b());
 			DedicatedServer.LOGGER.info("Starting Minecraft server on "
@@ -235,7 +233,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
 							"Whilst this makes it possible to use BungeeCord, unless access to your server is properly restricted, it also opens up the ability for hackers to connect with any username they choose.");
 					DedicatedServer.LOGGER
 							.warn("Please see http://www.spigotmc.org/wiki/firewall-guide/ for further information.");
-					if (!NachoConfig.stopNotifyBungee) {
+					if (!WindSpigotConfig.stopNotifyBungee) {
 						DedicatedServer.LOGGER
 								.warn("---------------------------- NachoSpigot Checker ----------------------------");
 						DedicatedServer.LOGGER.warn(
@@ -244,8 +242,6 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
 						try {
 							String external = IPUtils.getExternalAddress();
 							int port = getServerPort();
-							DedicatedServer.LOGGER.warn("External IP: " + external);
-							DedicatedServer.LOGGER.warn("Port: " + port);
 							if (IPUtils.isAccessible(external, port)) {
 								DedicatedServer.LOGGER.error("THIS SERVER IS ACCESSIBLE FROM THE OUTSIDE");
 								DedicatedServer.LOGGER
@@ -294,7 +290,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
 				String s = this.propertyManager.getString("level-seed", "");
 				String s1 = this.propertyManager.getString("level-type", "DEFAULT");
 				String s2 = this.propertyManager.getString("generator-settings", "");
-				long k = (new Random()).nextLong();
+				long k = (new FastRandom()).nextLong();
 
 				if (s.length() > 0) {
 					try {

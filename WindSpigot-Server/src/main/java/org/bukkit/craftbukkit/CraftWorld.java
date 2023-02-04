@@ -120,10 +120,8 @@ import org.bukkit.util.Vector;
 
 import com.google.common.base.Preconditions;
 
-import dev.cobblesword.nachospigot.commons.Constants;
+import ga.windpvp.windspigot.cache.Constants;
 import ga.windpvp.windspigot.random.FastRandom;
-import me.elier.nachospigot.config.NachoConfig;
-import net.jafama.FastMath;
 import net.minecraft.server.*;
 
 public class CraftWorld implements World {
@@ -454,44 +452,23 @@ public class CraftWorld implements World {
 		double prevY = loc.getY();
 		double prevZ = loc.getZ();
 		loc.add(xs, ys, zs);
-		if (NachoConfig.enableFastMath) {
-			if (loc.getX() < FastMath.floor(prevX)) {
-				loc.setX(FastMath.floor(prevX));
-			}
-			if (loc.getX() >= FastMath.ceil(prevX)) {
-				loc.setX(FastMath.ceil(prevX - 0.01));
-			}
-			if (loc.getY() < FastMath.floor(prevY)) {
-				loc.setY(FastMath.floor(prevY));
-			}
-			if (loc.getY() >= FastMath.ceil(prevY)) {
-				loc.setY(FastMath.ceil(prevY - 0.01));
-			}
-			if (loc.getZ() < FastMath.floor(prevZ)) {
-				loc.setZ(FastMath.floor(prevZ));
-			}
-			if (loc.getZ() >= Math.ceil(prevZ)) {
-				loc.setZ(FastMath.ceil(prevZ - 0.01));
-			}
-		} else {
-			if (loc.getX() < Math.floor(prevX)) {
-				loc.setX(Math.floor(prevX));
-			}
-			if (loc.getX() >= Math.ceil(prevX)) {
-				loc.setX(Math.ceil(prevX - 0.01));
-			}
-			if (loc.getY() < Math.floor(prevY)) {
-				loc.setY(Math.floor(prevY));
-			}
-			if (loc.getY() >= Math.ceil(prevY)) {
-				loc.setY(Math.ceil(prevY - 0.01));
-			}
-			if (loc.getZ() < Math.floor(prevZ)) {
-				loc.setZ(Math.floor(prevZ));
-			}
-			if (loc.getZ() >= Math.ceil(prevZ)) {
-				loc.setZ(Math.ceil(prevZ - 0.01));
-			}
+		if (loc.getX() < Math.floor(prevX)) {
+			loc.setX(Math.floor(prevX));
+		}
+		if (loc.getX() >= Math.ceil(prevX)) {
+			loc.setX(Math.ceil(prevX - 0.01));
+		}
+		if (loc.getY() < Math.floor(prevY)) {
+			loc.setY(Math.floor(prevY));
+		}
+		if (loc.getY() >= Math.ceil(prevY)) {
+			loc.setY(Math.ceil(prevY - 0.01));
+		}
+		if (loc.getZ() < Math.floor(prevZ)) {
+			loc.setZ(Math.floor(prevZ));
+		}
+		if (loc.getZ() >= Math.ceil(prevZ)) {
+			loc.setZ(Math.ceil(prevZ - 0.01));
 		}
 	}
 
@@ -842,16 +819,16 @@ public class CraftWorld implements World {
 	public List<LivingEntity> getLivingEntities() {
 		List<LivingEntity> list = new ArrayList<LivingEntity>();
 
-		for (Object o : world.entityList) {
-			if (o instanceof net.minecraft.server.Entity) {
-				net.minecraft.server.Entity mcEnt = (net.minecraft.server.Entity) o;
+		for (net.minecraft.server.Entity o : world.entityList) {
+			//if (o instanceof net.minecraft.server.Entity) {
+				net.minecraft.server.Entity mcEnt = o;
 				Entity bukkitEntity = mcEnt.getBukkitEntity();
 
 				// Assuming that bukkitEntity isn't null
 				if (bukkitEntity != null && bukkitEntity instanceof LivingEntity) {
 					list.add((LivingEntity) bukkitEntity);
 				}
-			}
+			//}
 		}
 
 		return list;
@@ -869,9 +846,9 @@ public class CraftWorld implements World {
 	public <T extends Entity> Collection<T> getEntitiesByClass(Class<T> clazz) {
 		Collection<T> list = new ArrayList<T>();
 
-		for (Object entity : world.entityList) {
+		for (net.minecraft.server.Entity entity : world.entityList) {
 			if (entity instanceof net.minecraft.server.Entity) {
-				Entity bukkitEntity = ((net.minecraft.server.Entity) entity).getBukkitEntity();
+				Entity bukkitEntity = entity.getBukkitEntity();
 
 				if (bukkitEntity == null) {
 					continue;
@@ -892,9 +869,9 @@ public class CraftWorld implements World {
 	public Collection<Entity> getEntitiesByClasses(Class<?>... classes) {
 		Collection<Entity> list = new ArrayList<Entity>();
 
-		for (Object entity : world.entityList) {
-			if (entity instanceof net.minecraft.server.Entity) {
-				Entity bukkitEntity = ((net.minecraft.server.Entity) entity).getBukkitEntity();
+		for (net.minecraft.server.Entity entity : world.entityList) {
+			//if (entity instanceof net.minecraft.server.Entity) {
+				Entity bukkitEntity = entity.getBukkitEntity();
 
 				if (bukkitEntity == null) {
 					continue;
@@ -908,7 +885,7 @@ public class CraftWorld implements World {
 						break;
 					}
 				}
-			}
+			//}
 		}
 
 		return list;
@@ -926,8 +903,8 @@ public class CraftWorld implements World {
 																													// :
 																													// rename
 		List<Entity> bukkitEntityList = new ArrayList<org.bukkit.entity.Entity>(entityList.size());
-		for (Object entity : entityList) {
-			bukkitEntityList.add(((net.minecraft.server.Entity) entity).getBukkitEntity());
+		for (net.minecraft.server.Entity entity : entityList) {
+			bukkitEntityList.add(entity.getBukkitEntity());
 		}
 		return bukkitEntityList;
 	}

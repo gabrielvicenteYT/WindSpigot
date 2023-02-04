@@ -2,6 +2,7 @@ package me.elier.nachospigot.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -16,14 +17,12 @@ import org.sugarcanemc.sugarcane.util.yaml.YamlCommenter;
 
 import com.google.common.base.Throwables;
 
-import dev.cobblesword.nachospigot.OldNachoConfig;
-import dev.cobblesword.nachospigot.commons.FileUtils;
 import ga.windpvp.windspigot.WindSpigot;
 
 public class NachoConfig {
 
 	private static final Logger LOGGER = LogManager.getLogger(NachoConfig.class);
-	private static File CONFIG_FILE;
+	public static File CONFIG_FILE;
 	protected static final YamlCommenter c = new YamlCommenter();
 	private static final String HEADER = "This is the main configuration file for NachoSpigot.\n"
 			+ "As you can see, there's tons to configure. Some options may impact gameplay, so use\n"
@@ -33,8 +32,16 @@ public class NachoConfig {
 			+ "Github: https://github.com/CobbleSword/NachoSpigot\n";
 	static YamlConfiguration config;
 	static int version;
+	
+	// If the config has been migrated to windspigot.yml
+	public static boolean hasMigrated = false;
 
 	public static void init(File configFile) {
+		/*if (!configFile.exists()) { TODO: uncomment this after config migration is finished
+			hasMigrated = true;
+			return;
+		}*/
+		
 		CONFIG_FILE = configFile;
 		config = new YamlConfiguration();
 		try {
@@ -46,10 +53,6 @@ public class NachoConfig {
 			throw Throwables.propagate(ex);
 		}
 		config.options().copyDefaults(true);
-		File old_config = new File("nacho.json");
-		if (old_config.exists()) {
-			migrate(old_config);
-		}
 
 		int configVersion = 9; // Update this every new configuration update
 		version = getInt("config-version", configVersion);
@@ -57,55 +60,6 @@ public class NachoConfig {
 		c.setHeader(HEADER);
 		c.addComment("config-version", "Configuration version, do NOT modify this!");
 		readConfig(NachoConfig.class, null);
-	}
-
-	private static void migrate(File old_config) {
-		OldNachoConfig nachoJson = FileUtils.toObject(old_config, OldNachoConfig.class);
-		if (nachoJson == null) {
-			old_config.delete();
-			return;
-		}
-		set("settings.save-empty-scoreboard-teams", nachoJson.saveEmptyScoreboardTeams);
-		set("settings.commands.enable-version-command", nachoJson.enableVersionCommand);
-		set("settings.commands.enable-plugins-command", nachoJson.enablePluginsCommand);
-		set("settings.commands.enable-reload-command", nachoJson.enableReloadCommand);
-		set("settings.fast-operators", nachoJson.useFastOperators);
-		set("settings.patch-protocollib", nachoJson.patchProtocolLib);
-		set("settings.stop-notify-bungee", nachoJson.stopNotifyBungee);
-		set("settings.anti-malware", nachoJson.checkForMalware);
-		set("settings.kick-on-illegal-behavior", nachoJson.kickOnIllegalBehavior);
-		set("world-settings.default.tick-enchantment-tables", nachoJson.shouldTickEnchantmentTables);
-		set("settings.panda-wire", nachoJson.usePandaWire);
-		set("world-settings.default.explosions.constant-radius", nachoJson.constantExplosions);
-		set("settings.event.fire-entity-explode-event", nachoJson.fireEntityExplodeEvent);
-		set("world-settings.default.explosions.reduced-density-rays", nachoJson.reducedDensityRays);
-		set("settings.brand-name", nachoJson.serverBrandName);
-		set("settings.stop-decoding-itemstack-on-place", nachoJson.stopDecodingItemStackOnPlace);
-		set("settings.anti-crash", nachoJson.enableAntiCrash);
-		set("world-settings.default.infinite-water-sources", nachoJson.infiniteWaterSources);
-		set("settings.event.fire-leaf-decay-event", nachoJson.leavesDecayEvent);
-		set("world-settings.default.entity.mob-ai", nachoJson.enableMobAI);
-		set("world-settings.default.entity.mob-sound", nachoJson.enableMobSound);
-		set("world-settings.default.entity.entity-activation", nachoJson.enableEntityActivation);
-		set("world-settings.default.entity.endermite-spawning", nachoJson.endermiteSpawning);
-		set("world-settings.default.enable-lava-to-cobblestone", nachoJson.enableLavaToCobblestone);
-		set("settings.event.fire-player-move-event", nachoJson.firePlayerMoveEvent);
-		set("world-settings.default.physics.disable-place", nachoJson.disablePhysicsPlace);
-		set("world-settings.default.physics.disable-update", nachoJson.disablePhysicsUpdate);
-		set("world-settings.default.block-operations", nachoJson.doBlocksOperations);
-		set("world-settings.default.unload-chunks", nachoJson.doChunkUnload);
-		set("settings.chunk.threads", nachoJson.chunkThreads);
-		set("settings.chunk.players-per-thread", nachoJson.playersPerThread);
-		set("settings.use-tcp-nodelay", nachoJson.enableTCPNODELAY);
-		set("settings.fixed-pools.use-fixed-pools-for-explosions", nachoJson.useFixedPoolForTNT);
-		set("settings.fixed-pools.size", nachoJson.fixedPoolSize);
-		set("settings.faster-cannon-tracker", nachoJson.useFasterCannonTracker);
-		set("world-settings.default.disable-sponge-absorption", nachoJson.disableSpongeAbsorption);
-		set("settings.fix-eat-while-running", nachoJson.fixEatWhileRunning);
-		set("settings.hide-projectiles-from-hidden-players", nachoJson.hideProjectilesFromHiddenPlayers);
-		set("settings.instant-use-entity", false);
-
-		old_config.delete();
 	}
 
 	static void readConfig(Class<?> clazz, Object instance) {
@@ -123,13 +77,37 @@ public class NachoConfig {
 				}
 			}
 		}
+	}
+	
+	// Migrates all read data into the WindSpigot config
+	// TODO: save this data to file instead of just putting it in memory
+	public static void moveToWindSpigotConfig(Class<?> clazz, Class<?> windSpigotConfigClazz) {
+		for (Field oldField : clazz.getDeclaredFields()) {
+			
+			if (Modifier.isPublic(oldField.getModifiers()) && Modifier.isStatic(oldField.getModifiers()) && !oldField.getName().equals("CONFIG_FILE") && !oldField.getName().equals("hasMigrated")) {
+				oldField.setAccessible(true);
 
-		try {
-			config.save(CONFIG_FILE);
-			// c.saveComments(CONFIG_FILE);
-		} catch (IOException ex) {
-			LOGGER.log(Level.ERROR, "Could not save " + CONFIG_FILE, ex);
-		}
+				boolean found = false;
+				
+				for (Field newField : windSpigotConfigClazz.getDeclaredFields()) {
+					if (newField.getName().equals(oldField.getName())) {
+						found = true;
+						newField.setAccessible(true);
+
+				        try {
+							newField.set(null, oldField.get(null));
+						} catch (IllegalArgumentException | IllegalAccessException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				if (!found) {
+					WindSpigot.LOGGER.warn("Unable to migrate option " + oldField.getName() + "!");
+				}
+			}
+ 		}
+		hasMigrated = true;
 	}
 
 	private static void set(String path, Object val) {
@@ -190,7 +168,7 @@ public class NachoConfig {
 	public static boolean useFastOperators;
 
 	private static void useFastOperators() {
-		useFastOperators = getBoolean("settings.fast-operators", true);
+		useFastOperators = getBoolean("settings.fast-operators", false);
 		c.addComment("settings.fast-operators",
 				"Enables Fast Operators, which uses a faster method for managing operators");
 	}
@@ -285,13 +263,10 @@ public class NachoConfig {
 		c.addComment("settings.use-tcp-nodelay", "Enables the TCP_NODELAY socket option");
 	}
 
-	public static boolean useFixedPoolForTNT;
 	public static int fixedPoolSize;
 
 	private static void fixedPools() {
-		useFixedPoolForTNT = getBoolean("settings.fixed-pools.use-fixed-pools-for-explosions", false);
-		c.addComment("settings.fixed-pools.use-fixed-pools-for-explosions", "Enables fixed thread pool for explosions");
-		fixedPoolSize = getInt("settings.fixed-pools.size", 500);
+		fixedPoolSize = getInt("settings.fixed-pools.size", 3);
 		c.addComment("settings.fixed-pools.size", "The size for the fixed thread pool for explosions.");
 	}
 
@@ -305,7 +280,7 @@ public class NachoConfig {
 	public static boolean fixEatWhileRunning;
 
 	private static void fixEatWhileRunning() {
-		fixEatWhileRunning = getBoolean("settings.fix-eat-while-running", false);
+		fixEatWhileRunning = getBoolean("settings.fix-eat-while-running", true);
 		c.addComment("settings.fix-eat-while-running", "Fixes the eating while running bug");
 	}
 
@@ -350,29 +325,6 @@ public class NachoConfig {
 		disableInfiniSleeperThreadUsage = getBoolean("settings.disable-infinisleeper-thread-usage", false);
 		c.addComment("settings.disable-infinisleeper-thread-usage",
 				"Disable infinisleeper thread usage, just enable this if you know what are you doing.");
-	}
-
-	public static boolean enableFastMath;
-
-	private static void enableFastMath() {
-		enableFastMath = getBoolean("settings.enable-fastmath", true);
-		c.addComment("settings.enable-fastmath", "Enable Fast Math usage.");
-	}
-
-	public static boolean enableFastMathCosSin;
-
-	private static void enableFastMathCosSin() {
-		enableFastMathCosSin = getBoolean("settings.enable-fastmath-cos-sin", false);
-		c.addComment("settings.enable-fastmath-cos-sin",
-				"Enable Fast Math usage with cos() and sin() methods, this may break anticheats and server-side calculations.");
-	}
-
-	public static int tileEntityTickingTime;
-
-	private static void tileEntityTickingTime() {
-		tileEntityTickingTime = getInt("settings.tile-entity-ticking-time", 20);
-		c.addComment("settings.tile-entity-ticking-time",
-				"Ticking time (20 ticks per second) for usage on tile entity operations.");
 	}
 
 	public static int itemDirtyTicks;

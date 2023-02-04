@@ -4,7 +4,7 @@ import java.util.Random;
 
 import org.bukkit.event.block.LeavesDecayEvent; // CraftBukkit
 
-import me.elier.nachospigot.config.NachoConfig;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 
 public abstract class BlockLeaves extends BlockTransparent {
 
@@ -144,7 +144,7 @@ public abstract class BlockLeaves extends BlockTransparent {
 	}
 
 	private void e(World world, BlockPosition blockposition) {
-		if (!NachoConfig.leavesDecayEvent) {
+		if (!WindSpigotConfig.leavesDecayEvent) {
 			return;
 		}
 

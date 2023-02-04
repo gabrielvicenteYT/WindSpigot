@@ -16,12 +16,11 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import dev.cobblesword.nachospigot.commons.Constants;
-import dev.cobblesword.nachospigot.commons.MCUtils;
+import ga.windpvp.windspigot.async.AsyncUtil;
+import ga.windpvp.windspigot.async.ResettableLatch;
+import ga.windpvp.windspigot.cache.Constants;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
 import ga.windpvp.windspigot.random.FastRandom;
-import me.elier.nachospigot.config.NachoConfig;
-import net.jafama.FastMath;
 import xyz.sculas.nacho.async.AsyncExplosions;
 
 public class Explosion {
@@ -39,6 +38,9 @@ public class Explosion {
 	private final List<BlockPosition> blocks = Lists.newArrayList();
 	private final Map<EntityHuman, Vec3D> k = Maps.newHashMap();
 	public boolean wasCanceled = false; // CraftBukkit - add field
+	
+	// WindSpigot - ensure async explosions affect entities on on the same tick
+	public static final ResettableLatch knockbackLatch = new ResettableLatch();
 
 	public Explosion(World world, Entity entity, double d0, double d1, double d2, float f, boolean flag,
 			boolean flag1) {
@@ -83,12 +85,12 @@ public class Explosion {
 		float f3 = this.size * 2.0F;
 
 		// IonSpigot start - Faster Entity Iteration
-		i = MathHelper.floorNoFastMath(this.posX - f3 - 1.0D) >> 4;
-		j = MathHelper.floorNoFastMath(this.posX + f3 + 1.0D) >> 4;
-		int l = MathHelper.clamp(MathHelper.floorNoFastMath(this.posY - f3 - 1.0D) >> 4, 0, 15);
-		int i1 = MathHelper.clamp(MathHelper.floorNoFastMath(this.posY + f3 + 1.0D) >> 4, 0, 15);
-		int j1 = MathHelper.floorNoFastMath(this.posZ - f3 - 1.0D) >> 4;
-		int k1 = MathHelper.floorNoFastMath(this.posZ + f3 + 1.0D) >> 4;
+		i = MathHelper.floor(this.posX - f3 - 1.0D) >> 4;
+		j = MathHelper.floor(this.posX + f3 + 1.0D) >> 4;
+		int l = MathHelper.clamp(MathHelper.floor(this.posY - f3 - 1.0D) >> 4, 0, 15);
+		int i1 = MathHelper.clamp(MathHelper.floor(this.posY + f3 + 1.0D) >> 4, 0, 15);
+		int j1 = MathHelper.floor(this.posZ - f3 - 1.0D) >> 4;
+		int k1 = MathHelper.floor(this.posZ + f3 + 1.0D) >> 4;
 		// PaperSpigot start - Fix lag from explosions processing dead entities
 		// List<Entity> list = this.world.a(this.source, new AxisAlignedBB(i, l, j1, j,
 		// i1, k1), entity -> IEntitySelector.d.apply(entity) && !entity.dead);
@@ -120,7 +122,8 @@ public class Explosion {
 					double distanceSquared = d8 * d8 + d9 * d9 + d10 * d10;
 
 					if (distanceSquared <= 64.0D && distanceSquared != 0.0D) {
-						double d11 = MathHelper.sqrtNoFastMath(distanceSquared);
+						knockbackLatch.increment(); // WindSpigot
+						double d11 = MathHelper.sqrt(distanceSquared);
 						double d7 = d11 / f3;
 						d8 /= d11;
 						d9 /= d11;
@@ -135,7 +138,7 @@ public class Explosion {
 						// WindSpigot start - toggleable async explosions
 						if (WindSpigotConfig.asyncTnt) {
 							this.getBlockDensityAsync(vec3d, entity.getBoundingBox())
-									.thenAccept((d12) -> MCUtils.ensureMain(() -> {
+									.thenAccept((d12) -> AsyncUtil.runPostTick(() -> {
 										processEntityKnockback(entity, d7, finalD, finalD1, finalD11, f3, d12);
 									}));
 						} else {
@@ -195,16 +198,27 @@ public class Explosion {
 	public void a(boolean flag) {
 		// PaperSpigot start - Configurable TNT explosion volume.
 		float volume = source instanceof EntityTNTPrimed ? world.paperSpigotConfig.tntExplosionVolume : 4.0F;
-		this.world.makeSound(this.posX, this.posY, this.posZ, "random.explode", volume,
-				(1.0F + (this.world.random.nextFloat() - this.world.random.nextFloat()) * 0.2F) * 0.7F);
-		// PaperSpigot end
-		if (this.size >= 2.0F && this.b) {
-			this.world.addParticle(EnumParticle.EXPLOSION_HUGE, this.posX, this.posY, this.posZ, 1.0D, 0.0D, 0.0D,
-					Constants.EMPTY_ARRAY);
-		} else {
-			this.world.addParticle(EnumParticle.EXPLOSION_LARGE, this.posX, this.posY, this.posZ, 1.0D, 0.0D, 0.0D,
-					Constants.EMPTY_ARRAY);
+		
+		// WindSpigot start - configurable explosion sounds
+		if (WindSpigotConfig.explosionSounds) {
+			this.world.makeSound(this.posX, this.posY, this.posZ, "random.explode", volume,
+					(1.0F + (this.world.random.nextFloat() - this.world.random.nextFloat()) * 0.2F) * 0.7F);
 		}
+		// WindSpigot end
+		
+		// PaperSpigot end
+		
+		// WindSpigot start - configurable explosion animations
+		if (WindSpigotConfig.explosionAnimation) {
+			if (this.size >= 2.0F && this.b) {
+				this.world.addParticle(EnumParticle.EXPLOSION_HUGE, this.posX, this.posY, this.posZ, 1.0D, 0.0D, 0.0D,
+						Constants.EMPTY_ARRAY);
+			} else {
+				this.world.addParticle(EnumParticle.EXPLOSION_LARGE, this.posX, this.posY, this.posZ, 1.0D, 0.0D, 0.0D,
+						Constants.EMPTY_ARRAY);
+			}
+		}
+		// WindSpigot end
 
 		Iterator iterator;
 		BlockPosition blockposition;
@@ -230,7 +244,7 @@ public class Explosion {
 
 			if (explode != null) {
                 EntityExplodeEvent event = new EntityExplodeEvent(explode, location, blockList, yield);
-				if (NachoConfig.fireEntityExplodeEvent) {
+				if (WindSpigotConfig.fireEntityExplodeEvent) {
                     this.world.getServer().getPluginManager().callEvent(event);
                 }
                 cancelled = event.isCancelled();
@@ -428,19 +442,20 @@ public class Explosion {
 				blockDensity = calculateDensity(vec3d, aabb);
 				this.world.explosionDensityCache.put(key, blockDensity);
 			}
+			knockbackLatch.decrement(); // WindSpigot
 			return blockDensity;
 		}, AsyncExplosions.EXECUTOR);
 	}
 	
 	// WindSpigot start - toggleable async explosions
 	private float getBlockDensitySync(Vec3D vec3d, AxisAlignedBB aabb) {
-		// IonSpigot start - Optimise Density Cache
 		int key = createKey(this, aabb);
 		float blockDensity = this.world.explosionDensityCache.get(key);
 		if (blockDensity == -1.0f) {
 			blockDensity = calculateDensity(vec3d, aabb);
 			this.world.explosionDensityCache.put(key, blockDensity);
 		}
+		knockbackLatch.decrement(); // WindSpigot
 		return blockDensity;
 	}
 	// WindSpigot end
@@ -478,10 +493,8 @@ public class Explosion {
 		double d0 = 1.0D / ((aabb.d - aabb.a) * 2.0D + 1.0D);
 		double d1 = 1.0D / ((aabb.e - aabb.b) * 2.0D + 1.0D);
 		double d2 = 1.0D / ((aabb.f - aabb.c) * 2.0D + 1.0D);
-		double d3 = (1.0D - ((NachoConfig.enableFastMath ? FastMath.floor(1.0D / d0) : Math.floor(1.0D / d0)) * d0))
-				/ 2.0D;
-		double d4 = (1.0D - ((NachoConfig.enableFastMath ? FastMath.floor(1.0D / d2) : Math.floor(1.0D / d2)) * d2))
-				/ 2.0D;
+		double d3 = (1.0D - (Math.floor(1.0D / d0)) * d0) / 2.0D;
+		double d4 = (1.0D - (Math.floor(1.0D / d2)) * d2) / 2.0D;
 
 		if (d0 < 0.0 || d1 < 0.0 || d2 < 0.0) {
 			return Collections.emptyList();

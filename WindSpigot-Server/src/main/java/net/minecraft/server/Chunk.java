@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger; // PaperSpigot
 
+import ga.windpvp.windspigot.random.FastRandom;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit; // CraftBukkit
@@ -1218,7 +1219,7 @@ public class Chunk {
 	}
 
 	public Random a(long i) {
-		return new Random(this.world.getSeed() + this.locX * this.locX * 4987142 + this.locX * 5947611
+		return new FastRandom(this.world.getSeed() + this.locX * this.locX * 4987142 + this.locX * 5947611
 				+ this.locZ * this.locZ * 4392871L + this.locZ * 389711 ^ i);
 	}
 
@@ -1677,4 +1678,16 @@ public class Chunk {
 		private EnumTileEntityState() {
 		}
 	}
+	
+    // FlamePaper start - Hopper item lookup optimization
+    public int getItemCount(BlockPosition blockPosition) {
+        int k = MathHelper.floor(blockPosition.getY() / 16.0D);
+
+        k = Math.max(0, k);
+        k = Math.min(this.entitySlices.length - 1, k);
+
+        return itemCounts[k];
+    }
+    // FlamePaper end - Hopper item lookup optimization
+
 }

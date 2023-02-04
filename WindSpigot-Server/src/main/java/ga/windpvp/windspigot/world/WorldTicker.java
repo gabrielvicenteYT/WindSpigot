@@ -2,7 +2,10 @@ package ga.windpvp.windspigot.world;
 
 import java.util.List;
 
-import ga.windpvp.windspigot.WorldTickerManager;
+import ga.windpvp.windspigot.async.AsyncUtil;
+import ga.windpvp.windspigot.async.ResettableLatch;
+import ga.windpvp.windspigot.async.entitytracker.AsyncEntityTracker;
+import ga.windpvp.windspigot.config.WindSpigotConfig;
 import net.minecraft.server.CrashReport;
 import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
@@ -14,19 +17,37 @@ import net.minecraft.server.WorldServer;
 public class WorldTicker implements Runnable {
 
 	public final WorldServer worldserver;
-
+	private final ResettableLatch latch = new ResettableLatch(WindSpigotConfig.trackingThreads);
+	private final Runnable cachedUpdateTrackerTask;
+	private volatile boolean hasTracked = false;
+	
 	public WorldTicker(WorldServer worldServer) {
 		this.worldserver = worldServer;
+		cachedUpdateTrackerTask = () -> {
+			hasTracked = true;
+			worldserver.getTracker().updatePlayers();
+		};
+	}
+	
+	@Override
+	public void run() {
+		run(!WindSpigotConfig.disableTracking);
 	}
 
 	// This is mostly copied code from world ticking
-	@Override
-	public void run() {
+	private void run(boolean handleTrackerAsync) {
 		// this.methodProfiler.a(worldserver.getWorldData().getName());
 		// this.methodProfiler.a("tick");
 		CrashReport crashreport;
 
 		try {
+			if (handleTrackerAsync && hasTracked) {
+				latch.waitTillZero();
+				latch.reset();
+				for (EntityPlayer player : MinecraftServer.getServer().getPlayerList().players) {
+					player.playerConnection.sendQueuedPackets();
+				}
+			}
 			worldserver.timings.doTick.startTiming(); // Spigot
 			worldserver.doTick();
 			worldserver.timings.doTick.stopTiming(); // Spigot
@@ -58,11 +79,13 @@ public class WorldTicker implements Runnable {
 			throw new ReportedException(crashreport);
 		}
 
-		// Synchronize
-		synchronized (WorldTickerManager.LOCK) {
+		if (handleTrackerAsync) {
+			AsyncUtil.run(cachedUpdateTrackerTask, AsyncEntityTracker.getExecutor());
+		} else {
+			worldserver.timings.tracker.startTiming(); // Spigot
+
 			// this.methodProfiler.b();
 			// this.methodProfiler.a("tracker");
-			worldserver.timings.tracker.startTiming(); // Spigot
 			if (MinecraftServer.getServer().getPlayerList().getPlayerCount() != 0) // Tuinity
 			{
 				// Tuinity start - controlled flush for entity tracker packets
@@ -84,13 +107,17 @@ public class WorldTicker implements Runnable {
 				}
 				// Tuinity end - controlled flush for entity tracker packets
 			}
+	
+			worldserver.timings.tracker.stopTiming(); // Spigot
 		}
-
-		worldserver.timings.tracker.stopTiming(); // Spigot
 		// this.methodProfiler.b();
 		// this.methodProfiler.b();
 		worldserver.explosionDensityCache.clear(); // Paper - Optimize explosions
 		worldserver.movementCache.clear(); // IonSpigot - Movement Cache
+	}
+	
+	public ResettableLatch getLatch() {
+		return latch;
 	}
 
 }
