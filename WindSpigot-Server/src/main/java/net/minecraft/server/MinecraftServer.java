@@ -53,7 +53,7 @@ import joptsimple.OptionSet;
 // CraftBukkit end
 
 // NachoSpigot start
-import xyz.sculas.nacho.async.AsyncExplosions;
+import ga.windpvp.windspigot.async.explosions.AsyncExplosions;
 // NachoSpigot end
 
 // WindSpigot start

@@ -27,8 +27,8 @@ import ga.windpvp.windspigot.protocol.MovementListener;
 import ga.windpvp.windspigot.protocol.PacketListener;
 import ga.windpvp.windspigot.statistics.StatisticsClient;
 import net.minecraft.server.MinecraftServer;
-import xyz.sculas.nacho.anticrash.AntiCrash;
-import xyz.sculas.nacho.async.AsyncExplosions;
+import ga.windpvp.windspigot.anticrash.AntiCrash;
+import ga.windpvp.windspigot.async.explosions.AsyncExplosions;
 
 public class WindSpigot {
 

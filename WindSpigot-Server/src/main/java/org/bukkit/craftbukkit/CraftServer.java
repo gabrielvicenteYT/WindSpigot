@@ -168,7 +168,7 @@ import net.minecraft.server.WorldNBTStorage;
 import net.minecraft.server.WorldServer;
 import net.minecraft.server.WorldSettings;
 import net.minecraft.server.WorldType;
-import xyz.sculas.nacho.malware.AntiMalware;
+import ga.windpvp.windspigot.antimalware.AntiMalware;
 
 public final class CraftServer implements Server {
 	private static final Player[] EMPTY_PLAYER_ARRAY = new Player[0];
