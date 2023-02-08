@@ -7,7 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import dev.windpvp.windspigot.CC;
+import ga.windpvp.windspigot.CC;
 
 //[Nacho-0021] Add setMaxPlayers within Bukkit.getServer() and SetMaxSlot Command
 public class SetMaxSlotCommand extends Command {
