@@ -1,4 +1,4 @@
-package dev.cobblesword.nachospigot;
+package ga.windpvp.windspigot;
 
 import org.bukkit.ChatColor;
 

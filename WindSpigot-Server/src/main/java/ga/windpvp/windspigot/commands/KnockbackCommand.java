@@ -6,7 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 import ga.windpvp.windspigot.commons.ClickableBuilder;
 import ga.windpvp.windspigot.knockback.CraftKnockbackProfile;
 import ga.windpvp.windspigot.knockback.KnockbackConfig;

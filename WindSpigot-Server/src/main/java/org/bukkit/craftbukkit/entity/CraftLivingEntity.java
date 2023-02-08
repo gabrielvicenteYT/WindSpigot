@@ -40,7 +40,7 @@ import org.bukkit.util.BlockIterator;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 import net.minecraft.server.DamageSource;
 import net.minecraft.server.EntityArmorStand;
 import net.minecraft.server.EntityArrow;

@@ -13,7 +13,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 
 /**
  * Represents a living entity, such as a monster or player

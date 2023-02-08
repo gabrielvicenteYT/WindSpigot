@@ -15,7 +15,7 @@ import org.sugarcanemc.sugarcane.util.yaml.YamlCommenter;
 
 import com.google.common.base.Throwables;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 import ga.windpvp.windspigot.WindSpigot;
 
 public class KnockbackConfig {

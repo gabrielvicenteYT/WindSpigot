@@ -39,7 +39,7 @@ import com.eatthepath.uuid.FastUUID;
 
 import co.aikar.timings.SpigotTimings; // Spigot
 import co.aikar.timings.Timing; // Spigot
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 import ga.windpvp.windspigot.WindSpigot;
 import ga.windpvp.windspigot.cache.Constants;
 import ga.windpvp.windspigot.config.WindSpigotConfig;

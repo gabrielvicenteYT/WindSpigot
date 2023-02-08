@@ -1,6 +1,6 @@
 package ga.windpvp.windspigot.knockback;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 
 public class CraftKnockbackProfile implements KnockbackProfile {
 

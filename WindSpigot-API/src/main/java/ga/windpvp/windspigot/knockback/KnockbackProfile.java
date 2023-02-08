@@ -1,4 +1,4 @@
-package dev.cobblesword.nachospigot.knockback;
+package ga.windpvp.windspigot.knockback;
 
 public interface KnockbackProfile {
 

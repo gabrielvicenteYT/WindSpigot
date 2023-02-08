@@ -23,7 +23,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 
-import dev.cobblesword.nachospigot.knockback.KnockbackProfile;
+import ga.windpvp.windspigot.knockback.KnockbackProfile;
 import ga.windpvp.windspigot.knockback.KnockbackConfig;
 
 public abstract class EntityHuman extends EntityLiving {

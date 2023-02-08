@@ -1,4 +1,4 @@
-package dev.cobblesword.nachospigot.events;
+package ga.windpvp.windspigot.events;
 
 import org.bukkit.World;
 import org.bukkit.event.Cancellable;
