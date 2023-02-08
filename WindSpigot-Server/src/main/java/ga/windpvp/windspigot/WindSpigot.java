@@ -60,6 +60,10 @@ public class WindSpigot {
 		this.init();
 	}
 
+	public void registerCommands() {
+
+	}
+
 	private void initCmds() {
 		
 		SimpleCommandMap commandMap = MinecraftServer.getServer().server.getCommandMap();
