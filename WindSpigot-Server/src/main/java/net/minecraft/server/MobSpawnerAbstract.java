@@ -6,7 +6,7 @@ import java.util.List;
 
 import ga.windpvp.windspigot.cache.Constants;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
-import net.techcable.tacospigot.event.entity.SpawnerPreSpawnEvent;
+import ga.windpvp.windspigot.event.entity.SpawnerPreSpawnEvent;
 
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
