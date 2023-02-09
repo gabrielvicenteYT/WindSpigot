@@ -14,6 +14,14 @@ public interface KnockbackProfile {
 
 	void setHorizontal(double horizontal);
 
+	double getHorizontalMin();
+
+	void setHorizontalMin(double horizontalMin);
+
+	double getHorizontalMax();
+
+	void setHorizontalMax(double horizontalMax);
+
 	double getVertical();
 
 	void setVertical(double vertical);

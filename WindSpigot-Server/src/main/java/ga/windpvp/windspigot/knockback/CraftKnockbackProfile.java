@@ -8,6 +8,8 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	private final String saveProfilePath;
 
 	private double horizontal = 0.4D;
+	private double horizontalMin = 0.4D
+	private double horizontalMax = 0.4D;
 	private double vertical = 0.4D;
 	private double verticalMin = -1.0D;
 	private double verticalMax = 0.4D;
@@ -56,9 +58,11 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 		set(".friction-horizontal", this.frictionHorizontal);
 		set(".friction-vertical", this.frictionVertical);
 		set(".horizontal", this.horizontal);
+		set(".horizontal-min", this.horizontalMin);
+		set(".horizontal-max", this.horizontalMax);
 		set(".vertical", this.vertical);
-		set(".vertical-max", this.verticalMax);
 		set(".vertical-min", this.verticalMin);
+		set(".vertical-max", this.verticalMax);
 		set(".extra-horizontal", this.extraHorizontal);
 		set(".extra-vertical", this.extraVertical);
 		
@@ -102,6 +106,26 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	@Override
 	public void setHorizontal(double horizontal) {
 		this.horizontal = horizontal;
+	}
+
+	@Override
+	public double getHorizontalMin() {
+		return horizontalMin;
+	}
+
+	@Override
+	public void setHorizontalMin(double horizontalMin) {
+		this.horizontalMin = horizontalMin;
+	}
+
+	@Override
+	public double getHorizontalMax() {
+		return horizontalMax;
+	}
+
+	@Override
+	public void setHorizontalMax(double horizontalMax) {
+		this.horizontalMax = horizontalMax;
 	}
 
 	@Override
@@ -286,7 +310,7 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 
 	@Override
 	public String[] getKnockbackValues() {
-		return new String[] { "Horizontal§7: " + this.horizontal, "Vertical§7: " + this.vertical,
+		return new String[] { "Horizontal§7: " + this.horizontal, "Horizontal-Min§7: " + this.horizontalMin, "Horizontal-Max§7: " + this.horizontalMax, "Vertical§7: " + this.vertical,
 				"Vertical-Max§7: " + this.verticalMax, "Vertical-Min§7: " + this.verticalMin,
 				"Extra-Horizontal§7: " + this.extraHorizontal, "Extra-Vertical§7: " + this.extraVertical,
 				"Friction-Horizontal§7: " + this.frictionHorizontal, "Friction-Vertical§7: " + this.frictionVertical,

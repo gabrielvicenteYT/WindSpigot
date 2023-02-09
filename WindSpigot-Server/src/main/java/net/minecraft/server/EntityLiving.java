@@ -994,7 +994,21 @@ public abstract class EntityLiving extends Entity {
 			this.motX -= x / magnitude * horizontal;
 			this.motY += vertical;
 			this.motZ -= z / magnitude * horizontal;
-			
+
+			if (this.motX > kb.getHorizontalMax()) {
+				this.motX = kb.getHorizontalMax();
+			}
+			if (this.motX < kb.getHorizontalMin()) {
+				this.motX = kb.getHorizontalMin();
+			}
+
+			if (this.motZ > kb.getHorizontalMax()) {
+				this.motZ = kb.getHorizontalMax();
+			}
+			if (this.motZ < kb.getHorizontalMin()) {
+				this.motZ = kb.getHorizontalMin();
+			}
+
 			if (this.motY > kb.getVerticalMax()) {
 				this.motY = kb.getVerticalMax();
 			}
