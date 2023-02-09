@@ -1,4 +1,4 @@
-package net.techcable.tacospigot.event.entity;
+package ga.windpvp.windspigot.event.entity;
 
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;

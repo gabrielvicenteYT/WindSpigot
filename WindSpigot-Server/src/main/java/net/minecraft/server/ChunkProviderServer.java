@@ -13,8 +13,7 @@ import org.bukkit.Server;
 import org.bukkit.craftbukkit.chunkio.ChunkIOExecutor;
 import org.bukkit.craftbukkit.util.LongHash;
 import org.bukkit.event.world.ChunkUnloadEvent;
-
-import ga.windpvp.windspigot.events.ChunkPreLoadEvent;
+import ga.windpvp.windspigot.event.chunk.ChunkPreLoadEvent;
 // CraftBukkit end
 // TacoSpigot start
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

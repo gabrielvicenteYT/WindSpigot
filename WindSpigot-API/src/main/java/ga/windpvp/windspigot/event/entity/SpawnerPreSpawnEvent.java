@@ -1,4 +1,4 @@
-package net.techcable.tacospigot.event.entity;
+package ga.windpvp.windspigot.event.entity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

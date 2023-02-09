@@ -1,4 +1,4 @@
-package ga.windpvp.windspigot.events;
+package ga.windpvp.windspigot.event.chunk;
 
 import org.bukkit.World;
 import org.bukkit.event.Cancellable;
