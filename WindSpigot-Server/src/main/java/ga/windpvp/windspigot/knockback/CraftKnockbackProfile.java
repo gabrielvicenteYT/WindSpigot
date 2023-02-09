@@ -8,7 +8,7 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	private final String saveProfilePath;
 
 	private double horizontal = 0.4D;
-	private double horizontalMin = 0.4D
+	private double horizontalMin = 0.4D;
 	private double horizontalMax = 0.4D;
 	private double vertical = 0.4D;
 	private double verticalMin = -1.0D;
