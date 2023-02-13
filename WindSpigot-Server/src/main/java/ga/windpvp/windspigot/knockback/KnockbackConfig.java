@@ -124,9 +124,11 @@ public class KnockbackConfig {
 			profile.setFrictionHorizontal(getDouble(path + ".friction-horizontal", 2.0D));
 			profile.setFrictionVertical(getDouble(path + ".friction-vertical", 2.0D));
 			profile.setHorizontal(getDouble(path + ".horizontal", 0.4D));
+			profile.setHorizontalMin(getDouble(path + ".horizontal-min", 0.4D));
+			profile.setHorizontalMax(getDouble(path + ".horizontal-max", -1.0D));
 			profile.setVertical(getDouble(path + ".vertical", 0.4D));
-			profile.setVerticalMax(getDouble(path + ".vertical-max", 0.4D));
-			profile.setVerticalMin(getDouble(path + ".vertical-min", -1.0D));
+			profile.setVerticalMin(getDouble(path + ".vertical-min", 0.4D));
+			profile.setVerticalMax(getDouble(path + ".vertical-max", -1.0D));
 			profile.setExtraHorizontal(getDouble(path + ".extra-horizontal", 0.5D));
 			profile.setExtraVertical(getDouble(path + ".extra-vertical", 0.1D));
 
