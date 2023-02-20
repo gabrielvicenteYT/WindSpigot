@@ -1,6 +1,10 @@
 package ga.windpvp.windspigot.knockback;
 
+import java.util.Random
+
 public interface KnockbackProfile {
+
+	Random random = new Random();
 
 	void save();
 
@@ -10,10 +14,6 @@ public interface KnockbackProfile {
 
 	void setName(String name);
 
-	double getHorizontal();
-
-	void setHorizontal(double horizontal);
-
 	double getHorizontalMin();
 
 	void setHorizontalMin(double horizontalMin);
@@ -21,10 +21,6 @@ public interface KnockbackProfile {
 	double getHorizontalMax();
 
 	void setHorizontalMax(double horizontalMax);
-
-	double getVertical();
-
-	void setVertical(double vertical);
 
 	double getVerticalMin();
 
