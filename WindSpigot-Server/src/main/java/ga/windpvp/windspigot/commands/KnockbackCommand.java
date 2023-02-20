@@ -131,49 +131,97 @@ public class KnockbackCommand extends Command {
 					return false;
 				}
 				switch (args[2].toLowerCase()) {
-				case "friction-horizontal": {
+				case "min-horizontal-friction": {
 					if (!NumberUtils.isNumber(args[3])) {
 						player.sendMessage("§4" + args[3] + " §c is not a number.");
 						return false;
 					}
 					double value = Double.parseDouble(args[3]);
-					profile.setFrictionHorizontal(value);
+					profile.setMinHorizontalFriction(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");
 					break;
 				}
-				case "friction-vertical": {
+				case "max-horizontal-friction": {
 					if (!NumberUtils.isNumber(args[3])) {
 						player.sendMessage("§4" + args[3] + " §c is not a number.");
 						return false;
 					}
 					double value = Double.parseDouble(args[3]);
-					profile.setFrictionVertical(value);
+					profile.setMaxHorizontalFriction(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");
 					break;
 				}
-				case "horizontal": {
+				case "min-vertical-friction": {
 					if (!NumberUtils.isNumber(args[3])) {
 						player.sendMessage("§4" + args[3] + " §c is not a number.");
 						return false;
 					}
 					double value = Double.parseDouble(args[3]);
-					profile.setHorizontal(value);
+					profile.setMinVerticalFriction(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");
 					break;
 				}
-				case "vertical": {
+				case "max-vertical-friction": {
 					if (!NumberUtils.isNumber(args[3])) {
 						player.sendMessage("§4" + args[3] + " §c is not a number.");
 						return false;
 					}
 					double value = Double.parseDouble(args[3]);
-					profile.setVertical(value);
+					profile.setMinVerticalFriction(value);
+					profile.save();
+					knockbackCommandView(player, profile);
+					player.sendMessage("§aValue edited and saved.");
+					break;
+				}
+				case "min-horizontal": {
+					if (!NumberUtils.isNumber(args[3])) {
+						player.sendMessage("§4" + args[3] + " §c is not a number.");
+						return false;
+					}
+					double value = Double.parseDouble(args[3]);
+					profile.setMinHorizontal(value);
+					profile.save();
+					knockbackCommandView(player, profile);
+					player.sendMessage("§aValue edited and saved.");
+					break;
+				}
+				case "max-horizontal": {
+					if (!NumberUtils.isNumber(args[3])) {
+						player.sendMessage("§4" + args[3] + " §c is not a number.");
+						return false;
+					}
+					double value = Double.parseDouble(args[3]);
+					profile.setMaxHorizontal(value);
+					profile.save();
+					knockbackCommandView(player, profile);
+					player.sendMessage("§aValue edited and saved.");
+					break;
+				}
+				case "min-vertical": {
+					if (!NumberUtils.isNumber(args[3])) {
+						player.sendMessage("§4" + args[3] + " §c is not a number.");
+						return false;
+					}
+					double value = Double.parseDouble(args[3]);
+					profile.setMinVertical(value);
+					profile.save();
+					knockbackCommandView(player, profile);
+					player.sendMessage("§aValue edited and saved.");
+					break;
+				}
+				case "max-vertical": {
+					if (!NumberUtils.isNumber(args[3])) {
+						player.sendMessage("§4" + args[3] + " §c is not a number.");
+						return false;
+					}
+					double value = Double.parseDouble(args[3]);
+					profile.setMaxVertical(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");
@@ -198,30 +246,6 @@ public class KnockbackCommand extends Command {
 					}
 					double value = Double.parseDouble(args[3]);
 					profile.setExtraVertical(value);
-					profile.save();
-					knockbackCommandView(player, profile);
-					player.sendMessage("§aValue edited and saved.");
-					break;
-				}
-				case "vertical-max": {
-					if (!NumberUtils.isNumber(args[3])) {
-						player.sendMessage("§4" + args[3] + " §c is not a number.");
-						return false;
-					}
-					double value = Double.parseDouble(args[3]);
-					profile.setMaxVertical(value);
-					profile.save();
-					knockbackCommandView(player, profile);
-					player.sendMessage("§aValue edited and saved.");
-					break;
-				}
-				case "vertical-min": {
-					if (!NumberUtils.isNumber(args[3])) {
-						player.sendMessage("§4" + args[3] + " §c is not a number.");
-						return false;
-					}
-					double value = Double.parseDouble(args[3]);
-					profile.setMinVertical(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");
