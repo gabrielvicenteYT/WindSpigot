@@ -63,8 +63,10 @@ public class KnockbackConfig {
 			windpvpProfile.setArrowHorizontal(0.5);
 			windpvpProfile.setArrowVertical(0.6);
 			
-			windpvpProfile.setHorizontal(0.35);
-			windpvpProfile.setVertical(0.35);
+			windpvpProfile.setMinHorizontal(0.35);
+			windpvpProfile.setMaxHorizontal(0.35);
+			windpvpProfile.setMinVertical(0.35);
+		    windpvpProfile.setMaxVertical(0.35);
 
 			windpvpProfile.setExtraHorizontal(0.425);
 			windpvpProfile.setExtraVertical(0.085);
@@ -80,8 +82,8 @@ public class KnockbackConfig {
 			
 			final KnockbackProfile hypixelProfile = new CraftKnockbackProfile("hypixel");
 			
-			hypixelProfile.setVertical(0.36);
-			hypixelProfile.setVerticalMax(0.43075);
+			hypixelProfile.setMinVertical(0.36);
+			hypixelProfile.setMaxVertical(0.43075);
 			
 			hypixelProfile.save(true);
 		}
@@ -89,7 +91,8 @@ public class KnockbackConfig {
 		if (!keys.contains("kohi")) {
 			final KnockbackProfile defaultProfile = new CraftKnockbackProfile("kohi"); 
 
-			defaultProfile.setHorizontal(0.35);
+			defaultProfile.setMinHorizontal(0.35);
+			defaultProfile.setMaxHorizontal(0.35);
 			defaultProfile.setRodHorizontal(0.35);
 			defaultProfile.setArrowHorizontal(0.35);
 			defaultProfile.setPearlHorizontal(0.35);
@@ -98,7 +101,8 @@ public class KnockbackConfig {
 			defaultProfile.setExtraHorizontal(0.425);
 			defaultProfile.setWTapExtraHorizontal(0.425);
 
-			defaultProfile.setVertical(0.35);
+			defaultProfile.setMinVertical(0.35);
+			defaultProfile.setMaxVertical(0.35);
 			defaultProfile.setRodVertical(0.35);
 			defaultProfile.setArrowVertical(0.35);
 			defaultProfile.setPearlVertical(0.35);
@@ -114,37 +118,37 @@ public class KnockbackConfig {
 		keys = getKeys("knockback.profiles");
 		
 		for (String key : keys) {
-			final String path = "knockback.profiles." + key;
+			final String path = key;
 			CraftKnockbackProfile profile = (CraftKnockbackProfile) getKbProfileByName(key);
 			if (profile == null) {
 				profile = new CraftKnockbackProfile(key);
 				kbProfiles.add(profile);
 			}
-			profile.setStopSprint(getBoolean(path + ".stop-sprint", true));
-			profile.setFrictionHorizontal(getDouble(path + ".friction-horizontal", 2.0D));
-			profile.setFrictionVertical(getDouble(path + ".friction-vertical", 2.0D));
-			profile.setHorizontal(getDouble(path + ".horizontal", 0.4D));
-			profile.setHorizontalMin(getDouble(path + ".horizontal-min", 0.4D));
-			profile.setHorizontalMax(getDouble(path + ".horizontal-max", -1.0D));
-			profile.setVertical(getDouble(path + ".vertical", 0.4D));
-			profile.setVerticalMin(getDouble(path + ".vertical-min", 0.4D));
-			profile.setVerticalMax(getDouble(path + ".vertical-max", -1.0D));
-			profile.setExtraHorizontal(getDouble(path + ".extra-horizontal", 0.5D));
-			profile.setExtraVertical(getDouble(path + ".extra-vertical", 0.1D));
+			profile.setStopSprint(getBoolean(path + " " + "stop-sprint", true));
+			profile.setMinHorizontalFriction(getDouble(path + " " + "min-horizontal-friction", 2.0D));
+			profile.setMaxHorizontalFriction(getDouble(path + " " + "max-horizontal-friction", 2.0D));
+			profile.setMinVerticalFriction(getDouble(path + " " + "min-vertical-friction", 2.0D));
+			profile.setMaxVerticalFriction(getDouble(path + " " + "max-vertical-friction", 2.0D));
+			profile.setMinHorizontal(getDouble(path + " " + "min-horizontal", 0.4D));
+			profile.setMaxHorizontal(getDouble(path + " " + "max-horizontal", -1.0D));
+			profile.setMinVertical(getDouble(path + " " + "min-vertical", 0.4D));
+			profile.setMaxVertical(getDouble(path + " " + "max-vertical", -1.0D));
+			profile.setExtraHorizontal(getDouble(path + " " + "extra-horizontal", 0.5D));
+			profile.setExtraVertical(getDouble(path + "extra-vertical", 0.1D));
 
-			profile.setWTapExtraHorizontal(getDouble(path + ".wtap-extra-horizontal", 0.5));
-			profile.setWTapExtraVertical(getDouble(path + ".wtap-extra-vertical", 0.1));
+			profile.setWTapExtraHorizontal(getDouble(path + " " + "wtap-extra-horizontal", 0.5));
+			profile.setWTapExtraVertical(getDouble(path + " " + "wtap-extra-vertical", 0.1));
 
-			profile.setRodHorizontal(getDouble(path + ".projectiles.rod.horizontal", 0.4D));
-			profile.setRodVertical(getDouble(path + ".projectiles.rod.vertical", 0.4D));
-			profile.setArrowHorizontal(getDouble(path + ".projectiles.arrow.horizontal", 0.4D));
-			profile.setArrowVertical(getDouble(path + ".projectiles.arrow.vertical", 0.4D));
-			profile.setPearlHorizontal(getDouble(path + ".projectiles.pearl.horizontal", 0.4D));
-			profile.setPearlVertical(getDouble(path + ".projectiles.pearl.vertical", 0.4D));
-			profile.setSnowballHorizontal(getDouble(path + ".projectiles.snowball.horizontal", 0.4D));
-			profile.setSnowballVertical(getDouble(path + ".projectiles.snowball.vertical", 0.4D));
-			profile.setEggHorizontal(getDouble(path + ".projectiles.egg.horizontal", 0.4D));
-			profile.setEggVertical(getDouble(path + ".projectiles.egg.vertical", 0.4D));
+			profile.setRodHorizontal(getDouble(path + " " + "rod-horizontal", 0.4D));
+			profile.setRodVertical(getDouble(path + " " + "rod-vertical", 0.4D));
+			profile.setArrowHorizontal(getDouble(path + " " + "arrow-horizontal", 0.4D));
+			profile.setArrowVertical(getDouble(path + " " + "arrow-vertical", 0.4D));
+			profile.setPearlHorizontal(getDouble(path + " " + "pearl-horizontal", 0.4D));
+			profile.setPearlVertical(getDouble(path + " " + "pearl-vertical", 0.4D));
+			profile.setSnowballHorizontal(getDouble(path + " " + "snowball-horizontal", 0.4D));
+			profile.setSnowballVertical(getDouble(path + " " + "snowball-vertical", 0.4D));
+			profile.setEggHorizontal(getDouble(path + " " + "egg-horizontal", 0.4D));
+			profile.setEggVertical(getDouble(path + " " + "egg-vertical", 0.4D));
 		}
 		currentKb = getKbProfileByName(getString("knockback.current", "kohi"));
 		if (currentKb == null) {

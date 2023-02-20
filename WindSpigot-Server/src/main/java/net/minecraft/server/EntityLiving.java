@@ -956,9 +956,11 @@ public abstract class EntityLiving extends Entity {
 			double magnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(z, 2));
 			double horizontal = 0.4D;
 			double vertical = 0.4D;
-
 			KnockbackProfile kb = (this.getKnockbackProfile() == null) ? KnockbackConfig.getCurrentKb()
 					: this.getKnockbackProfile();
+
+			horizontalFrictionRandomized = SplittableRandom.nextInt(kb.getMinHorizontalFriction(), kb.getMaxHorizontalFriction());
+			verticalFrictionRandomized = SplittableRandom.nextInt(kb.getMinVerticalFriction(), kb.getMaxVerticalFriction());
 
 			if (source instanceof EntityDamageSourceIndirect) {
 				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityFishingHook) {
@@ -977,43 +979,43 @@ public abstract class EntityLiving extends Entity {
 					horizontal = kb.getPearlHorizontal();
 					vertical = kb.getPearlVertical();
 				} else {
-					horizontal = kb.getHorizontal();
-					vertical = kb.getVertical();
+				    horizontal = SplittableRandom.nextInt(kb.getMinHorizontal(), kb.getMaxHorizontal());
+				    vertical = SplittableRandom.nextInt(kb.getMinVertical(), kb.getMaxVertical());
 				}
 			} else {
-				horizontal = kb.getHorizontal();
-				vertical = kb.getVertical();
+				horizontal = SplittableRandom.nextInt(kb.getMinHorizontal(), kb.getMaxHorizontal());
+				vertical = SplittableRandom.nextInt(kb.getMinVertical(), kb.getMaxVertical());
 			}
 
 			// WindSpigot start - correct knockback friction (change to division instead of multiplication)
-			this.motX /= kb.getFrictionHorizontal();
-			this.motY /= kb.getFrictionVertical();
-			this.motZ /= kb.getFrictionHorizontal();
+			this.motX /= horizontalFrictionRandomized();
+			this.motY /= verticalFrictionRandomized();
+			this.motZ /= horizontalFrictionRandomized();
 			// WindSpigot end
 
 			this.motX -= x / magnitude * horizontal;
 			this.motY += vertical;
 			this.motZ -= z / magnitude * horizontal;
 
-			if (this.motX > kb.getHorizontalMax()) {
-				this.motX = kb.getHorizontalMax();
+			if (this.motX > kb.getMaxHorizontal()) {
+				this.motX = kb.getMaxHorizontal();
 			}
-			if (this.motX < kb.getHorizontalMin()) {
-				this.motX = kb.getHorizontalMin();
-			}
-
-			if (this.motZ > kb.getHorizontalMax()) {
-				this.motZ = kb.getHorizontalMax();
-			}
-			if (this.motZ < kb.getHorizontalMin()) {
-				this.motZ = kb.getHorizontalMin();
+			if (this.motX < kb.getMinHorizontal()) {
+				this.motX = kb.getMinHorizontal();
 			}
 
-			if (this.motY > kb.getVerticalMax()) {
-				this.motY = kb.getVerticalMax();
+			if (this.motZ > kb.getMaxHorizontal()) {
+				this.motZ = kb.getMaxHorizontal();
 			}
-			if (this.motY < kb.getVerticalMin()) {
-				this.motY = kb.getVerticalMin();
+			if (this.motZ < kb.getMinHorizontal()) {
+				this.motZ = kb.getMinHorizontal();
+			}
+
+			if (this.motY > kb.getMaxVertical()) {
+				this.motY = kb.getMaxVertical();
+			}
+			if (this.motY < kb.getMinVertical()) {
+				this.motY = kb.getMinVertical();
 			}
 		}
 	}

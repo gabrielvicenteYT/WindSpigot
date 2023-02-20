@@ -8,11 +8,11 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	private final String saveProfilePath;
 
 	private double horizontal = 0.4D;
-	private double horizontalMin = 0.4D;
-	private double horizontalMax = 0.4D;
+	private double minHorizontal = 0.4D;
+	private double maxHorizontal = 0.4D;
 	private double vertical = 0.4D;
-	private double verticalMin = -1.0D;
-	private double verticalMax = 0.4D;
+	private double minVertical = -1.0D;
+	private double maxVertical = 0.4D;
 	private double extraHorizontal = 0.5D;
 	private double extraVertical = 0.1D;
 	private double frictionHorizontal = 2.0D;
@@ -58,11 +58,11 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 		set(".friction-horizontal", this.frictionHorizontal);
 		set(".friction-vertical", this.frictionVertical);
 		set(".horizontal", this.horizontal);
-		set(".horizontal-min", this.horizontalMin);
-		set(".horizontal-max", this.horizontalMax);
+		set(".horizontal-min", this.minHorizontal);
+		set(".horizontal-max", this.maxHorizontal);
 		set(".vertical", this.vertical);
-		set(".vertical-min", this.verticalMin);
-		set(".vertical-max", this.verticalMax);
+		set(".vertical-min", this.minVertical);
+		set(".vertical-max", this.maxVertical);
 		set(".extra-horizontal", this.extraHorizontal);
 		set(".extra-vertical", this.extraVertical);
 		
@@ -109,53 +109,43 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	}
 
 	@Override
-	public double getHorizontalMin() {
-		return horizontalMin;
+	public double getMinHorizontal() {
+		return minHorizontal;
 	}
 
 	@Override
-	public void setHorizontalMin(double horizontalMin) {
-		this.horizontalMin = horizontalMin;
+	public void setMinHorizontal(double minHorizontal) {
+		this.minHorizontal = minHorizontal;
 	}
 
 	@Override
-	public double getHorizontalMax() {
-		return horizontalMax;
+	public double getMaxHorizontal() {
+		return maxHorizontal;
 	}
 
 	@Override
-	public void setHorizontalMax(double horizontalMax) {
-		this.horizontalMax = horizontalMax;
+	public void setMaxHorizontal(double maxHorizontal) {
+		this.maxHorizontal = maxHorizontal;
 	}
 
 	@Override
-	public double getVertical() {
-		return vertical;
+	public double getMinVertical() {
+		return minVertical;
 	}
 
 	@Override
-	public void setVertical(double vertical) {
-		this.vertical = vertical;
+	public void setMinVertical(double minVertical) {
+		this.minVertical = minVertical;
 	}
 
 	@Override
-	public double getVerticalMin() {
-		return verticalMin;
+	public double getMaxVertical() {
+		return maxVertical;
 	}
 
 	@Override
-	public void setVerticalMin(double verticalMin) {
-		this.verticalMin = verticalMin;
-	}
-
-	@Override
-	public double getVerticalMax() {
-		return verticalMax;
-	}
-
-	@Override
-	public void setVerticalMax(double verticalMax) {
-		this.verticalMax = verticalMax;
+	public void setMaxVertical(double maxVertical) {
+		this.maxVertical = maxVertical;
 	}
 
 	@Override
@@ -179,23 +169,43 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	}
 
 	@Override
-	public double getFrictionHorizontal() {
-		return frictionHorizontal;
+	public double getMinHorizontalFriction() {
+		return minHorizontalFriction;
 	}
 
 	@Override
-	public void setFrictionHorizontal(double frictionHorizontal) {
-		this.frictionHorizontal = frictionHorizontal;
+	public void setMinHorizontalFriction(double minHorizontalFriction) {
+		this.minHorizontalFriction = minHorizontalFriction;
 	}
 
 	@Override
-	public double getFrictionVertical() {
-		return frictionVertical;
+	public double getMaxHorizontalFriction() {
+		return maxHorizontalFriction;
 	}
 
 	@Override
-	public void setFrictionVertical(double frictionVertical) {
-		this.frictionVertical = frictionVertical;
+	public void setMaxHorizontalFriction(double maxHorizontalFriction) {
+		this.maxHorizontalFriction = maxHorizontalFriction;
+	}
+
+	@Override
+	public double getMinVerticalFriction() {
+		return minVerticalFriction;
+	}
+
+	@Override
+	public void setMinVerticalFriction(double minVerticalFriction) {
+		this.minVerticalFriction = minVerticalFriction;
+	}
+
+	@Override
+	public double getMaxVerticalFriction() {
+		return maxVerticalFriction;
+	}
+
+	@Override
+	public void setMaxVerticalFriction(double maxVerticalFriction) {
+		this.maxVerticalFriction = maxVerticalFriction;
 	}
 
 	@Override
@@ -310,13 +320,13 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 
 	@Override
 	public String[] getKnockbackValues() {
-		return new String[] { "Horizontal§7: " + this.horizontal, "Horizontal-Min§7: " + this.horizontalMin, "Horizontal-Max§7: " + this.horizontalMax, "Vertical§7: " + this.vertical,
-				"Vertical-Max§7: " + this.verticalMax, "Vertical-Min§7: " + this.verticalMin,
-				"Extra-Horizontal§7: " + this.extraHorizontal, "Extra-Vertical§7: " + this.extraVertical,
-				"Friction-Horizontal§7: " + this.frictionHorizontal, "Friction-Vertical§7: " + this.frictionVertical,
-				"Stop-Sprint§7: " + this.stopSprint, "Wtap-Extra-Horizontal§7: " + this.wTapExtraHorizontal,
-				"Wtap-Extra-Vertical§7: " + this.wTapExtraVertical, "Speed-Extra-Horizontal§7: " + this.extraSpeedHorizontal,
-				"Speed-Extra-Vertical§7: " + this.extraSpeedVertical };
+		return new String[] { "Min Horizontal§7: " + this.MinHorizontal, "Max Horizontal§7: " + this.MaxHorizontal,
+				"Min Vertical§7:" + this.MinVertical, "Max Vertical§7: " + this.MaxVertical
+				"Extra Horizontal§7: " + this.extraHorizontal, "Extra Vertical§7: " + this.extraVertical,
+				"Min Horizontal Friction§7: " + this.MinHorizontalFriction, "Max Horizontal Friction§7: " + this.MaxHorizontalFriction, "Min Vertical Friction§7: " + this.MinVerticalFriction,
+				"Max Vertical Friction §7: " + this.MaxVerticalFriction ,"Stop Sprint§7: " + this.stopSprint, "Wtap Extra Horizontal§7: " + this.wTapExtraHorizontal,
+				"Wtap Extra Vertical§7: " + this.wTapExtraVertical, "Speed Extra Horizontal§7: " + this.extraSpeedHorizontal,
+				"Speed Extra Vertical§7: " + this.extraSpeedVertical };
 	}
 
 	@Override

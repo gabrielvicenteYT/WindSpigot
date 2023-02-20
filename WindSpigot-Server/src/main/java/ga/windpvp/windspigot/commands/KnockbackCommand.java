@@ -209,7 +209,7 @@ public class KnockbackCommand extends Command {
 						return false;
 					}
 					double value = Double.parseDouble(args[3]);
-					profile.setVerticalMax(value);
+					profile.setMaxVertical(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");
@@ -221,7 +221,7 @@ public class KnockbackCommand extends Command {
 						return false;
 					}
 					double value = Double.parseDouble(args[3]);
-					profile.setVerticalMin(value);
+					profile.setMinVertical(value);
 					profile.save();
 					knockbackCommandView(player, profile);
 					player.sendMessage("§aValue edited and saved.");

@@ -10,29 +10,21 @@ public interface KnockbackProfile {
 
 	void setName(String name);
 
-	double getHorizontal();
+	double getMinHorizontal();
 
-	void setHorizontal(double horizontal);
+	void setMinHorizontal(double minHorizontal);
 
-	double getHorizontalMin();
+	double getMaxHorizontal();
 
-	void setHorizontalMin(double horizontalMin);
+	void setMaxHorizontal(double maxHorizontal);
 
-	double getHorizontalMax();
+	double getMinVertical();
 
-	void setHorizontalMax(double horizontalMax);
+	void setMinVertical(double minVertical);
 
-	double getVertical();
+	double getMaxVertical();
 
-	void setVertical(double vertical);
-
-	double getVerticalMin();
-
-	void setVerticalMin(double verticalMin);
-
-	double getVerticalMax();
-
-	void setVerticalMax(double verticalMax);
+	void setMaxVertical(double maxVertical);
 
 	double getExtraHorizontal();
 
@@ -42,13 +34,21 @@ public interface KnockbackProfile {
 
 	void setExtraVertical(double extraVertical);
 
-	double getFrictionHorizontal();
+	double getMinHorizontalFriction();
 
-	void setFrictionHorizontal(double frictionHorizontal);
+	void setMinHorizontalFriction(double minHorizontalFriction);
 
-	double getFrictionVertical();
+	double getMaxHorizontalFriction();
 
-	void setFrictionVertical(double frictionVertical);
+	void setMaxHorizontalFriction(double maxHorizontalFriction);
+
+	double getMinVerticalFriction();
+
+	void setMinVerticalFriction(double minVerticalFriction);
+
+	double getMaxVerticalFriction();
+
+	void setMaxVerticalFriction(double maxVerticalFriction);
 
 	boolean isStopSprint();
 
