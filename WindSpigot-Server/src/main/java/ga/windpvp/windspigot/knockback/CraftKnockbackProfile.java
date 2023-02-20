@@ -321,7 +321,7 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	@Override
 	public String[] getKnockbackValues() {
 		return new String[] { "Min Horizontal§7: " + this.MinHorizontal, "Max Horizontal§7: " + this.MaxHorizontal,
-				"Min Vertical§7:" + this.MinVertical, "Max Vertical§7: " + this.MaxVertical
+				"Min Vertical§7:" + this.MinVertical, "Max Vertical§7: " + this.MaxVertical,
 				"Extra Horizontal§7: " + this.extraHorizontal, "Extra Vertical§7: " + this.extraVertical,
 				"Min Horizontal Friction§7: " + this.MinHorizontalFriction, "Max Horizontal Friction§7: " + this.MaxHorizontalFriction, "Min Vertical Friction§7: " + this.MinVerticalFriction,
 				"Max Vertical Friction §7: " + this.MaxVerticalFriction ,"Stop Sprint§7: " + this.stopSprint, "Wtap Extra Horizontal§7: " + this.wTapExtraHorizontal,
