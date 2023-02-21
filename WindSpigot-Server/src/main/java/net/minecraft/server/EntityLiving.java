@@ -960,8 +960,8 @@ public abstract class EntityLiving extends Entity {
 			KnockbackProfile kb = (this.getKnockbackProfile() == null) ? KnockbackConfig.getCurrentKb()
 					: this.getKnockbackProfile();
 
-			horizontalFrictionRandomized = SplittableRandom.nextInt(kb.getMinHorizontalFriction(), kb.getMaxHorizontalFriction());
-			verticalFrictionRandomized = SplittableRandom.nextInt(kb.getMinVerticalFriction(), kb.getMaxVerticalFriction());
+			horizontalFriction = SplittableRandom.nextInt(kb.getMinHorizontalFriction(), kb.getMaxHorizontalFriction());
+			verticalFriction = SplittableRandom.nextInt(kb.getMinVerticalFriction(), kb.getMaxVerticalFriction());
 
 			if (source instanceof EntityDamageSourceIndirect) {
 				if (((EntityDamageSourceIndirect) source).getProximateDamageSource() instanceof EntityFishingHook) {
