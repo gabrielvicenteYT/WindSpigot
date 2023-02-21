@@ -955,10 +955,10 @@ public abstract class EntityLiving extends Entity {
 			this.ai = true;
 
 			double magnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(z, 2));
-			double horizontal = 0.4D;
-			double vertical = 0.4D;
-			double horizontalFriction = SplittableRandom.nextInt(kb.getMinHorizontalFriction(), kb.getMaxHorizontalFriction());
-			double verticalFriction = SplittableRandom.nextInt(kb.getMinVerticalFriction(), kb.getMaxVerticalFriction());
+//			double horizontal = 0.4D;
+//			double vertical = 0.4D;
+			horizontalFriction = SplittableRandom.nextInt(kb.getMinHorizontalFriction(), kb.getMaxHorizontalFriction());
+			verticalFriction = SplittableRandom.nextInt(kb.getMinVerticalFriction(), kb.getMaxVerticalFriction());
 			
 			KnockbackProfile kb = (this.getKnockbackProfile() == null) ? KnockbackConfig.getCurrentKb()
 					: this.getKnockbackProfile();
@@ -981,7 +981,7 @@ public abstract class EntityLiving extends Entity {
 					vertical = kb.getPearlVertical();
 				} else {
 				    double horizontal = SplittableRandom.nextInt(kb.getMinHorizontal(), kb.getMaxHorizontal());
-				    vertical = SplittableRandom.nextInt(kb.getMinVertical(), kb.getMaxVertical());
+				    double vertical = SplittableRandom.nextInt(kb.getMinVertical(), kb.getMaxVertical());
 				}
 			} else {
 				double horizontal = SplittableRandom.nextInt(kb.getMinHorizontal(), kb.getMaxHorizontal());
