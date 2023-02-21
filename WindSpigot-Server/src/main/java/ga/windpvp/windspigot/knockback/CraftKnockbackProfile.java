@@ -99,16 +99,6 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	}
 
 	@Override
-	public double getHorizontal() {
-		return horizontal;
-	}
-
-	@Override
-	public void setHorizontal(double horizontal) {
-		this.horizontal = horizontal;
-	}
-
-	@Override
 	public double getMinHorizontal() {
 		return minHorizontal;
 	}
