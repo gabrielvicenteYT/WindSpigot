@@ -7,16 +7,16 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	private String name;
 	private final String saveProfilePath;
 
-	private double horizontal = 0.4D;
 	private double minHorizontal = 0.4D;
 	private double maxHorizontal = 0.4D;
-	private double vertical = 0.4D;
 	private double minVertical = -1.0D;
 	private double maxVertical = 0.4D;
 	private double extraHorizontal = 0.5D;
 	private double extraVertical = 0.1D;
-	private double frictionHorizontal = 2.0D;
-	private double frictionVertical = 2.0D;
+	private double minHorizontalFriction = 2.0D;
+        private double maxHorizontalFriction = 2.0D;
+	private double minVerticalFriction = 2.0D;
+	private double maxVerticalFriction = 2.0D;
 
 	private boolean stopSprint = true;
 
@@ -39,7 +39,7 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 
 	public CraftKnockbackProfile(String name) {
 		this.name = name;
-		this.saveProfilePath = "knockback.profiles." + this.name;
+		this.saveProfilePath = this.name;
 	}
 
 	@Override
@@ -54,35 +54,35 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 	@Override
 	public void save(boolean projectiles) {
 
-		set(".stop-sprint", this.stopSprint);
-		set(".friction-horizontal", this.frictionHorizontal);
-		set(".friction-vertical", this.frictionVertical);
-		set(".horizontal", this.horizontal);
-		set(".horizontal-min", this.minHorizontal);
-		set(".horizontal-max", this.maxHorizontal);
-		set(".vertical", this.vertical);
-		set(".vertical-min", this.minVertical);
-		set(".vertical-max", this.maxVertical);
-		set(".extra-horizontal", this.extraHorizontal);
-		set(".extra-vertical", this.extraVertical);
+		set("stop-sprint", this.stopSprint);
+		set("min-horizontal-friction", this.minHorizontalFriction);
+		set("max-horizontal-friction", this.maxHorizontalFriction);
+		set("min-vertical-friction", this.minVerticalFriction);
+	        set("max-vertical-friction", this.maxVerticalFriction);
+		set("horizontal-min", this.minHorizontal);
+		set("horizontal-max", this.maxHorizontal);
+		set("vertical-min", this.minVertical);
+		set("vertical-max", this.maxVertical);
+		set("extra-horizontal", this.extraHorizontal);
+		set("extra-vertical", this.extraVertical);
 		
-		set(".wtap-extra-horizontal", this.wTapExtraHorizontal);
-		set(".wtap-extra-vertical", this.wTapExtraVertical);
+		set("wtap-extra-horizontal", this.wTapExtraHorizontal);
+		set("wtap-extra-vertical", this.wTapExtraVertical);
 		
-		set(".add-horizontal", this.extraSpeedHorizontal);
-		set(".add-vertical", this.extraSpeedVertical);
+		set("add-horizontal", this.extraSpeedHorizontal);
+		set("add-vertical", this.extraSpeedVertical);
 		
 		if (projectiles) {
-			set(".projectiles.rod.horizontal", this.rodHorizontal);
-			set(".projectiles.rod.vertical", this.rodVertical);
-			set(".projectiles.arrow.horizontal", this.arrowHorizontal);
-			set(".projectiles.arrow.vertical", this.arrowVertical);
-			set(".projectiles.pearl.horizontal", this.pearlHorizontal);
-			set(".projectiles.pearl.vertical", this.pearlVertical);
-			set(".projectiles.snowball.horizontal", this.snowballHorizontal);
-			set(".projectiles.snowball.vertical", this.snowballVertical);
-			set(".projectiles.egg.horizontal", this.eggHorizontal);
-			set(".projectiles.egg.vertical", this.eggVertical);
+			set("projectiles.rod.horizontal", this.rodHorizontal);
+			set("projectiles.rod.vertical", this.rodVertical);
+			set("projectiles.arrow.horizontal", this.arrowHorizontal);
+			set("projectiles.arrow.vertical", this.arrowVertical);
+			set("projectiles.pearl.horizontal", this.pearlHorizontal);
+			set("projectiles.pearl.vertical", this.pearlVertical);
+			set("projectiles.snowball.horizontal", this.snowballHorizontal);
+			set("projectiles.snowball.vertical", this.snowballVertical);
+			set("projectiles.egg.horizontal", this.eggHorizontal);
+			set("projectiles.egg.vertical", this.eggVertical);
 		}
 
 		KnockbackConfig.save();
@@ -320,11 +320,11 @@ public class CraftKnockbackProfile implements KnockbackProfile {
 
 	@Override
 	public String[] getKnockbackValues() {
-		return new String[] { "Min Horizontal§7: " + this.MinHorizontal, "Max Horizontal§7: " + this.MaxHorizontal,
-				"Min Vertical§7:" + this.MinVertical, "Max Vertical§7: " + this.MaxVertical,
+		return new String[] { "Min Horizontal§7: " + this.minHorizontal, "Max Horizontal§7: " + this.maxHorizontal,
+				"Min Vertical§7:" + this.minVertical, "Max Vertical§7: " + this.maxVertical,
 				"Extra Horizontal§7: " + this.extraHorizontal, "Extra Vertical§7: " + this.extraVertical,
-				"Min Horizontal Friction§7: " + this.MinHorizontalFriction, "Max Horizontal Friction§7: " + this.MaxHorizontalFriction, "Min Vertical Friction§7: " + this.MinVerticalFriction,
-				"Max Vertical Friction §7: " + this.MaxVerticalFriction ,"Stop Sprint§7: " + this.stopSprint, "Wtap Extra Horizontal§7: " + this.wTapExtraHorizontal,
+				"Min Horizontal Friction§7: " + this.minHorizontalFriction, "Max Horizontal Friction§7: " + this.maxHorizontalFriction, "Min Vertical Friction§7: " + this.minVerticalFriction,
+				"Max Vertical Friction §7: " + this.maxVerticalFriction ,"Stop Sprint§7: " + this.stopSprint, "Wtap Extra Horizontal§7: " + this.wTapExtraHorizontal,
 				"Wtap Extra Vertical§7: " + this.wTapExtraVertical, "Speed Extra Horizontal§7: " + this.extraSpeedHorizontal,
 				"Speed Extra Vertical§7: " + this.extraSpeedVertical };
 	}
