@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -988,9 +989,9 @@ public abstract class EntityLiving extends Entity {
 			}
 
 			// WindSpigot start - correct knockback friction (change to division instead of multiplication)
-			this.motX /= horizontalFrictionRandomized();
-			this.motY /= verticalFrictionRandomized();
-			this.motZ /= horizontalFrictionRandomized();
+			this.motX /= horizontalFriction;
+			this.motY /= verticalFriction;
+			this.motZ /= horizontalFriction;
 			// WindSpigot end
 
 			this.motX -= x / magnitude * horizontal;
