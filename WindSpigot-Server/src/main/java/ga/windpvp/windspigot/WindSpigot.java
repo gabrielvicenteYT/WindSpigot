@@ -16,6 +16,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ga.windpvp.windspigot.async.AsyncUtil;
 import ga.windpvp.windspigot.async.pathsearch.SearchHandler;
 import ga.windpvp.windspigot.async.thread.CombatThread;
+import ga.windpvp.windspigot.async.world.TeleportRegistry;
+import ga.windpvp.windspigot.commands.AdminGuiCommand;
 import ga.windpvp.windspigot.commands.KnockbackCommand;
 import ga.windpvp.windspigot.commands.MobAICommand;
 import ga.windpvp.windspigot.commands.PingCommand;
@@ -78,7 +80,10 @@ public class WindSpigot {
 			commandMap.register(pingCommand.getName(), "", pingCommand);
 		}
 	
-		
+		if (WindSpigotConfig.adminGui) {
+			AdminGuiCommand guiCommand = new AdminGuiCommand("admingui");
+			MinecraftServer.getServer().server.getCommandMap().register(guiCommand.getName(), "", guiCommand);
+		}
 		
 		// NachoSpigot commands
 		// TODO: add configuration for all of these

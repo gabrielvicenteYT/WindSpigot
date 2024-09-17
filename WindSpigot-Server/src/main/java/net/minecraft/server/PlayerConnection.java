@@ -59,6 +59,7 @@ import com.google.common.primitives.Floats;
 
 import co.aikar.timings.SpigotTimings; // Spigot
 // CraftBukkit end
+import dev.cobblesword.nachospigot.Nacho;
 import ga.windpvp.windspigot.WindSpigot;
 import ga.windpvp.windspigot.config.WindSpigotConfig;
 import ga.windpvp.windspigot.events.PlayerIllegalBehaviourEvent;
@@ -1387,15 +1388,8 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 					}
 				};
 				minecraftServer.processQueue.add(wait);
-				try {
-					wait.get();
-					return;
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt(); // This is proper habit for java. If we aren't handling it, pass
-														// it on!
-				} catch (Exception e) {
-					throw new RuntimeException("Exception processing chat command", e.getCause());
-				}
+				return;
+
 			}
 			// PaperSpigot End
 			this.handleCommand(s);
@@ -2046,6 +2040,12 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 
 					event.setCancelled(cancelled);
 					server.getPluginManager().callEvent(event);
+					
+					// WindSpigot start - admin gui
+					if (WindSpigotConfig.adminGui && event.getInventory() == WindSpigotConfig.gui.getInventory() && !event.isCancelled()) {
+						WindSpigotConfig.gui.getHandler().onClick(event);
+					}
+					// WindSpigot end
 
 					switch (event.getResult()) {
 					case ALLOW:

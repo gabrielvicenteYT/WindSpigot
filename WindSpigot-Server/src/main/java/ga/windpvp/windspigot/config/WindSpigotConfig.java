@@ -20,6 +20,9 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 import ga.windpvp.windspigot.WindSpigot;
+import me.elier.nachospigot.config.NachoConfig;
+import ga.windpvp.windspigot.config.TimingsCheck;
+import ga.windpvp.windspigot.gui.admingui.AdminGui;
 import ga.windpvp.windspigot.async.pathsearch.AsyncNavigation;
 import ga.windpvp.windspigot.entity.EntityTickLimiter;
 
@@ -51,7 +54,7 @@ public class WindSpigotConfig {
 		}
 		config.options().copyDefaults(true);
 
-		int configVersion = 28; // Update this every new configuration update
+		int configVersion = 29; // Update this every new configuration update
 
 		version = getInt("config-version", configVersion);
 		set("config-version", configVersion);
@@ -351,7 +354,18 @@ public class WindSpigotConfig {
 		showPlayerIps = getBoolean("settings.show-player-ips", true);
 	}
 	
-	public static boolean modernKeepalive;
+	public static boolean adminGui;
+	public static AdminGui gui;
+
+	private static void adminGui() {
+		adminGui = getBoolean("settings.admin-gui", true);
+		if (adminGui) {
+			gui = new AdminGui();
+		}
+		c.addComment("settings.admin-gui",
+				"Enables the admin gui which allows easy access to utilities. The gui can be opened via /admingui and users require the permission windspigot.command.admingui");
+
+  public static boolean modernKeepalive;
 	
 	private static void modernKeepalive() {
 		modernKeepalive = getBoolean("settings.modern-keep-alive", false);
